@@ -301,40 +301,95 @@ export async function uploadFile(
         ? sanitizeFilename(filename, true)
         : sanitizeFilename(filename, false);
 
+    console.log("========================================");
+    console.log("Starting Cloudinary upload");
+    console.log("Resource type:", resourceType);
+    console.log("Public ID:", `immverse/${folder}/${publicId}`);
+    console.log("File size:", buffer.length, "bytes");
+    console.log("========================================");
+
     const uploadStream = cloudinary.uploader.upload_chunked_stream(
       {
         folder: `immverse/${folder}`,
         public_id: publicId,
         resource_type: resourceType,
+
         overwrite: true,
+
+        /*
+         * 6 MB chunks.
+         *
+         * Cloudinary sends intermediate callbacks while
+         * processing these chunks.
+         */
         chunk_size: 6 * 1024 * 1024,
+
         use_filename: false,
         unique_filename: false,
       },
 
-      (error, result) => {
+      (error, result: any) => {
+        console.log("========================================");
+        console.log("Cloudinary upload callback");
+        console.log("Error:", error);
+        console.log("Result:", result);
+        console.log("========================================");
+
+        // ---------------------------------------------------------
+        // Cloudinary returned an error
+        // ---------------------------------------------------------
         if (error) {
           reject(
-            new Error(`Cloudinary upload failed: ${error.message}`)
+            new Error(
+              `Cloudinary upload failed: ${error.message}`
+            )
           );
           return;
         }
-
-        console.log("Cloudinary upload response:", result);
 
         if (!result) {
           reject(
-            new Error("Cloudinary upload returned no result")
+            new Error(
+              "Cloudinary upload returned no result"
+            )
           );
           return;
         }
 
         // ---------------------------------------------------------
-        // Use Cloudinary's secure_url when it is available.
+        // IMPORTANT:
+        //
+        // upload_chunked_stream() calls the callback multiple
+        // times.
+        //
+        // done:false = intermediate chunk
+        // done:true  = FINAL upload response
+        //
+        // DO NOT resolve/reject on done:false.
         // ---------------------------------------------------------
+
+        if (result.done === false) {
+          console.log(
+            `Cloudinary chunk uploaded: ${result.bytes} bytes`
+          );
+
+          return;
+        }
+
+        // ---------------------------------------------------------
+        // FINAL RESPONSE
+        // ---------------------------------------------------------
+
+        console.log(
+          "Cloudinary upload COMPLETED:",
+          JSON.stringify(result, null, 2)
+        );
+
+        // Cloudinary normally provides secure_url on the
+        // final upload response.
         if (result.secure_url) {
           console.log(
-            "Cloudinary secure_url:",
+            "Cloudinary secure URL:",
             result.secure_url
           );
 
@@ -343,32 +398,42 @@ export async function uploadFile(
         }
 
         // ---------------------------------------------------------
-        // For raw assets such as GLB, construct the URL using
-        // the ACTUAL version returned by Cloudinary.
+        // Fallback for raw assets.
         //
-        // Do NOT use /v1/.
+        // Use the ACTUAL version returned by Cloudinary.
+        // Never use /v1/.
         // ---------------------------------------------------------
-        if (result.public_id && result.version) {
-          const url =
+
+        if (
+          result.public_id &&
+          result.version
+        ) {
+          const generatedUrl =
             `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}` +
-            `/${resourceType}/upload/v${result.version}/${result.public_id}`;
+            `/${result.resource_type || resourceType}` +
+            `/upload/v${result.version}/` +
+            `${result.public_id}`;
 
           console.log(
             "Generated Cloudinary URL:",
-            url
+            generatedUrl
           );
 
-          resolve(url);
+          resolve(generatedUrl);
           return;
         }
 
         reject(
           new Error(
-            "Cloudinary upload completed but no secure_url, public_id, or version was returned"
+            "Cloudinary final upload response did not contain secure_url or version"
           )
         );
       }
     );
+
+    // ---------------------------------------------------------
+    // Send the Buffer to Cloudinary
+    // ---------------------------------------------------------
 
     const readable = Readable.from(buffer);
 
