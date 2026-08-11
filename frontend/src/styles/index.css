@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --paper: #F8FAFC;
+    --paper-dim: #F1F5F9;
+    --ink: #0F172A;
+    --ink-soft: #475569;
+    --surface: #FFFFFF;
+    --surface-soft: #F8FAFC;
+    --contrast: #E2E8F0;
+    --accent: #2D5BFF;
+    --accent-dark: #1F46E0;
+    --accent-soft: #EAF0FF;
+  }
+
+  .dark {
+    --paper: #0B0F19;
+    --paper-dim: #07090E;
+    --ink: #F8FAFC;
+    --ink-soft: #94A3B8;
+    --surface: #111827;
+    --surface-soft: #1F2937;
+    --contrast: #1E293B;
+    --accent: #2D5BFF;
+    --accent-dark: #3B82F6;
+    --accent-soft: rgba(45, 91, 255, 0.15);
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Glassmorphism utility classes */
+.glass-panel {
+  background-color: var(--surface);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--contrast);
+}
+
+.glow-shadow {
+  box-shadow: 0 8px 24px rgba(45, 91, 255, 0.22);
+}
+
+.glow-shadow-lg {
+  box-shadow: 0 16px 48px rgba(45, 91, 255, 0.28);
+}
