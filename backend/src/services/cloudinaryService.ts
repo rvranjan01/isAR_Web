@@ -195,94 +195,181 @@ cloudinary.config({
  * Replace the body of this function when migrating to
  * AWS S3 / Azure Blob Storage.
  */
+// export async function uploadFile(
+//   buffer: Buffer,
+//   filename: string,
+//   folder: string,
+//   resourceType: "image" | "video" | "raw" | "auto" = "auto",
+// ): Promise<string> {
+//   return new Promise((resolve, reject) => {
+//     /*
+//      * Cloudinary supports chunked uploads through
+//      * upload_chunked_stream().
+//      *
+//      * 6 MB chunks are used here to keep memory/network
+//      * requirements reasonable while supporting larger files.
+//      *
+//      * Cloudinary allows chunk sizes down to 5 MB.
+//      */
+//     const uploadStream = cloudinary.uploader.upload_chunked_stream(
+//       {
+//         folder: `immverse/${folder}`,
+
+//         /*
+//          * IMPORTANT:
+//          * Raw assets such as .glb/.gltf should keep their
+//          * original extension in the public_id.
+//          */
+//         public_id:
+//           resourceType === "raw"
+//             ? sanitizeFilename(filename, true)
+//             : sanitizeFilename(filename, false),
+
+//         resource_type: resourceType,
+
+//         overwrite: true,
+
+//         /*
+//          * 6 MB chunk size.
+//          *
+//          * Cloudinary's documented default is 20 MB and
+//          * the minimum supported chunk size is 5 MB.
+//          */
+//         chunk_size: 6 * 1024 * 1024,
+
+//         use_filename: false,
+//         unique_filename: false,
+//       },
+
+//       (error: any, result: UploadApiResponse | undefined) => {
+//         if (error) {
+//           reject(new Error(`Cloudinary upload failed: ${error.message}`));
+//           return;
+//         }
+
+//         if (!result) {
+//           reject(new Error("Cloudinary upload returned no result"));
+//           return;
+//         }
+
+//         /*
+//          * secure_url is the permanent HTTPS URL.
+//          *
+//          * ALWAYS store this URL in MongoDB.
+//          * NEVER store a localhost URL or Render filesystem path.
+//          *
+//          * QR codes must also be generated from this URL.
+//          */
+//         if (!result.secure_url) {
+//           reject(
+//             new Error(
+//               "Cloudinary upload succeeded but no secure_url was returned",
+//             ),
+//           );
+//           return;
+//         }
+
+//         resolve(result.secure_url);
+//       },
+//     );
+
+//     /*
+//      * Pipe the file buffer into Cloudinary's chunked upload stream.
+//      */
+//     const readable = Readable.from(buffer);
+
+//     readable.on("error", (error) => {
+//       reject(
+//         new Error(
+//           `Failed to read file for Cloudinary upload: ${error.message}`,
+//         ),
+//       );
+//     });
+
+//     readable.pipe(uploadStream);
+//   });
+// }
 export async function uploadFile(
   buffer: Buffer,
   filename: string,
   folder: string,
-  resourceType: "image" | "video" | "raw" | "auto" = "auto",
+  resourceType: "image" | "video" | "raw" | "auto" = "auto"
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    /*
-     * Cloudinary supports chunked uploads through
-     * upload_chunked_stream().
-     *
-     * 6 MB chunks are used here to keep memory/network
-     * requirements reasonable while supporting larger files.
-     *
-     * Cloudinary allows chunk sizes down to 5 MB.
-     */
+    const publicId =
+      resourceType === "raw"
+        ? sanitizeFilename(filename, true)
+        : sanitizeFilename(filename, false);
+
     const uploadStream = cloudinary.uploader.upload_chunked_stream(
       {
         folder: `immverse/${folder}`,
-
-        /*
-         * IMPORTANT:
-         * Raw assets such as .glb/.gltf should keep their
-         * original extension in the public_id.
-         */
-        public_id:
-          resourceType === "raw"
-            ? sanitizeFilename(filename, true)
-            : sanitizeFilename(filename, false),
-
+        public_id: publicId,
         resource_type: resourceType,
-
         overwrite: true,
-
-        /*
-         * 6 MB chunk size.
-         *
-         * Cloudinary's documented default is 20 MB and
-         * the minimum supported chunk size is 5 MB.
-         */
         chunk_size: 6 * 1024 * 1024,
-
         use_filename: false,
         unique_filename: false,
       },
-
-      (error: any, result: UploadApiResponse | undefined) => {
+      (error, result) => {
         if (error) {
-          reject(new Error(`Cloudinary upload failed: ${error.message}`));
-          return;
-        }
-
-        if (!result) {
-          reject(new Error("Cloudinary upload returned no result"));
-          return;
-        }
-
-        /*
-         * secure_url is the permanent HTTPS URL.
-         *
-         * ALWAYS store this URL in MongoDB.
-         * NEVER store a localhost URL or Render filesystem path.
-         *
-         * QR codes must also be generated from this URL.
-         */
-        if (!result.secure_url) {
           reject(
-            new Error(
-              "Cloudinary upload succeeded but no secure_url was returned",
-            ),
+            new Error(`Cloudinary upload failed: ${error.message}`)
           );
           return;
         }
 
-        resolve(result.secure_url);
-      },
+        console.log("Cloudinary upload response:", result);
+
+        if (!result) {
+          reject(
+            new Error("Cloudinary upload returned no result")
+          );
+          return;
+        }
+
+        /*
+         * Cloudinary normally returns secure_url for the final
+         * upload response.
+         *
+         * For raw files, construct the secure URL from the
+         * returned public_id if secure_url is unavailable.
+         */
+        if (result.secure_url) {
+          resolve(result.secure_url);
+          return;
+        }
+
+        if (result.public_id) {
+          const url = cloudinary.url(result.public_id, {
+            resource_type: resourceType,
+            secure: true,
+          });
+
+          console.log(
+            "Cloudinary secure_url was unavailable. Generated URL:",
+            url
+          );
+
+          resolve(url);
+          return;
+        }
+
+        reject(
+          new Error(
+            "Cloudinary upload completed but neither secure_url nor public_id was returned"
+          )
+        );
+      }
     );
 
-    /*
-     * Pipe the file buffer into Cloudinary's chunked upload stream.
-     */
     const readable = Readable.from(buffer);
 
     readable.on("error", (error) => {
       reject(
         new Error(
-          `Failed to read file for Cloudinary upload: ${error.message}`,
-        ),
+          `Failed to read file for Cloudinary upload: ${error.message}`
+        )
       );
     });
 
