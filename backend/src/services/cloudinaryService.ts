@@ -311,6 +311,7 @@ export async function uploadFile(
         use_filename: false,
         unique_filename: false,
       },
+
       (error, result) => {
         if (error) {
           reject(
@@ -328,26 +329,32 @@ export async function uploadFile(
           return;
         }
 
-        /*
-         * Cloudinary normally returns secure_url for the final
-         * upload response.
-         *
-         * For raw files, construct the secure URL from the
-         * returned public_id if secure_url is unavailable.
-         */
+        // ---------------------------------------------------------
+        // Use Cloudinary's secure_url when it is available.
+        // ---------------------------------------------------------
         if (result.secure_url) {
+          console.log(
+            "Cloudinary secure_url:",
+            result.secure_url
+          );
+
           resolve(result.secure_url);
           return;
         }
 
-        if (result.public_id) {
-          const url = cloudinary.url(result.public_id, {
-            resource_type: resourceType,
-            secure: true,
-          });
+        // ---------------------------------------------------------
+        // For raw assets such as GLB, construct the URL using
+        // the ACTUAL version returned by Cloudinary.
+        //
+        // Do NOT use /v1/.
+        // ---------------------------------------------------------
+        if (result.public_id && result.version) {
+          const url =
+            `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}` +
+            `/${resourceType}/upload/v${result.version}/${result.public_id}`;
 
           console.log(
-            "Cloudinary secure_url was unavailable. Generated URL:",
+            "Generated Cloudinary URL:",
             url
           );
 
@@ -357,7 +364,7 @@ export async function uploadFile(
 
         reject(
           new Error(
-            "Cloudinary upload completed but neither secure_url nor public_id was returned"
+            "Cloudinary upload completed but no secure_url, public_id, or version was returned"
           )
         );
       }
