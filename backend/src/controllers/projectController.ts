@@ -92,7 +92,7 @@ export const createProject = async (
       productCategory,
       description,
       productImageUrl:
-        productImageUrl,
+        productImageUrl || "https://assets.immversestudios.com/default-product-image.png",
       scanFileUrl,
       notes,
       status: "Uploaded",
