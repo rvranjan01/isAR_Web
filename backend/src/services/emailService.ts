@@ -37,7 +37,7 @@ const SMTP_SECURE = process.env.SMTP_SECURE === "true";
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 const SMTP_FROM =
-  process.env.SMTP_FROM || `"Immverse AR" <noreply@immversestudios.com>`;
+  process.env.SMTP_FROM;
 
 console.log("========================================");
 console.log("SMTP Configuration");

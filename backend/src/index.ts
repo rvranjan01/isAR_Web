@@ -118,6 +118,17 @@ mongoose
 
     // Verify SMTP configuration
     await verifySMTP();
+
+    console.log("========================================");
+console.log("SMTP CHECK");
+console.log("HOST:", process.env.SMTP_HOST);
+console.log("PORT:", process.env.SMTP_PORT);
+console.log("SECURE:", process.env.SMTP_SECURE);
+console.log("USER:", process.env.SMTP_USER ? "SET" : "MISSING");
+console.log("PASS:", process.env.SMTP_PASS ? "SET" : "MISSING");
+console.log("FROM:", process.env.SMTP_FROM);
+console.log("========================================");
+
     // Start server
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
