@@ -2,46 +2,55 @@
 
 @layer base {
   :root {
-    --paper: #F8FAFC;
-    --paper-dim: #F1F5F9;
-    --ink: #0F172A;
+    --paper: #f8fafc;
+    --paper-dim: #f1f5f9;
+    --ink: #0f172a;
     --ink-soft: #475569;
-    --surface: #FFFFFF;
-    --surface-soft: #F8FAFC;
-    --contrast: #E2E8F0;
-    --accent: #2D5BFF;
-    --accent-dark: #1F46E0;
-    --accent-soft: #EAF0FF;
+    --surface: #ffffff;
+    --surface-soft: #f8fafc;
+    --contrast: #e2e8f0;
+    --accent: #2d5bff;
+    --accent-dark: #1f46e0;
+    --accent-soft: #eaf0ff;
   }
 
   .dark {
-    --paper: #0B0F19;
-    --paper-dim: #07090E;
-    --ink: #F8FAFC;
-    --ink-soft: #94A3B8;
+    --paper: #0b0f19;
+    --paper-dim: #07090e;
+    --ink: #f8fafc;
+    --ink-soft: #94a3b8;
     --surface: #111827;
-    --surface-soft: #1F2937;
-    --contrast: #1E293B;
-    --accent: #2D5BFF;
-    --accent-dark: #3B82F6;
+    --surface-soft: #1f2937;
+    --contrast: #1e293b;
+    --accent: #2d5bff;
+    --accent-dark: #3b82f6;
     --accent-soft: rgba(45, 91, 255, 0.15);
   }
 
   body {
     background-color: var(--paper);
     color: var(--ink);
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Plus Jakarta Sans", sans-serif;
   }
 
-  code, pre, .font-mono {
-    font-family: 'JetBrains Mono', monospace;
+  code,
+  pre,
+  .font-mono {
+    font-family: "JetBrains Mono", monospace;
   }
 }
 

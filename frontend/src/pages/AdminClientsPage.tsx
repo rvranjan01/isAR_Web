@@ -1,20 +1,29 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { projectService } from '@/services/projectService';
-import { subscriptionService } from '@/services/subscriptionService';
-import { authService } from '@/services/authService';
-import { Project, Subscription } from '@/types';
-import { Card, CardContent } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { formatDate } from '@/lib/utils';
-import { useNotifications } from '@/context/NotificationContext';
+import React, { useEffect, useState, useMemo } from "react";
+import { Link } from "react-router-dom";
+import { projectService } from "@/services/projectService";
+import { subscriptionService } from "@/services/subscriptionService";
+import { authService } from "@/services/authService";
+import { Project, Subscription } from "@/types";
+import { Card, CardContent } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { formatDate } from "@/lib/utils";
+import { useNotifications } from "@/context/NotificationContext";
 import {
-  Users, Search, ArrowRight, CheckCircle, AlertTriangle, Clock, Layers, Lock, LockOpen, ShieldAlert
-} from 'lucide-react';
-import { PageTransition } from '@/components/layout/PageTransition';
+  Users,
+  Search,
+  ArrowRight,
+  CheckCircle,
+  AlertTriangle,
+  Clock,
+  Layers,
+  Lock,
+  LockOpen,
+  ShieldAlert,
+} from "lucide-react";
+import { PageTransition } from "@/components/layout/PageTransition";
 
 interface ClientSummary {
   email: string;
@@ -31,7 +40,7 @@ export const AdminClientsPage: React.FC = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [lockStatuses, setLockStatuses] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [unlockingEmail, setUnlockingEmail] = useState<string | null>(null);
   const { addToast } = useNotifications();
 
@@ -40,14 +49,14 @@ export const AdminClientsPage: React.FC = () => {
     try {
       const [projData, subData] = await Promise.all([
         projectService.getProjects(),
-        subscriptionService.getSubscriptions()
+        subscriptionService.getSubscriptions(),
       ]);
       setProjects(projData);
       setSubscriptions(subData);
 
       // Fetch lock statuses for all unique client emails
       const emails = Array.from(
-        new Set(projData.map((p: Project) => p.clientEmail.toLowerCase()))
+        new Set(projData.map((p: Project) => p.clientEmail.toLowerCase())),
       );
       const statuses = await Promise.all(
         emails.map(async (email) => {
@@ -57,11 +66,11 @@ export const AdminClientsPage: React.FC = () => {
           } catch {
             return [email, false] as [string, boolean];
           }
-        })
+        }),
       );
       setLockStatuses(Object.fromEntries(statuses));
     } catch (err) {
-      console.error('Failed to load clients data:', err);
+      console.error("Failed to load clients data:", err);
     } finally {
       setIsLoading(false);
     }
@@ -75,17 +84,18 @@ export const AdminClientsPage: React.FC = () => {
     setUnlockingEmail(email);
     try {
       await authService.unlockClient(email);
-      setLockStatuses(prev => ({ ...prev, [email]: false }));
+      setLockStatuses((prev) => ({ ...prev, [email]: false }));
       addToast({
-        type: 'success',
-        title: 'Account Unlocked',
-        description: `${email} can now log in again.`
+        type: "success",
+        title: "Account Unlocked",
+        description: `${email} can now log in again.`,
       });
     } catch (err) {
       addToast({
-        type: 'error',
-        title: 'Unlock Failed',
-        description: err instanceof Error ? err.message : 'Could not unlock account.'
+        type: "error",
+        title: "Unlock Failed",
+        description:
+          err instanceof Error ? err.message : "Could not unlock account.",
       });
     } finally {
       setUnlockingEmail(null);
@@ -104,10 +114,13 @@ export const AdminClientsPage: React.FC = () => {
     return Array.from(emailMap.entries())
       .map(([email, clientProjects]) => {
         const sorted = [...clientProjects].sort(
-          (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          (a, b) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
         );
         const latest = sorted[0];
-        const sub = subscriptions.find(s => s.clientEmail.toLowerCase() === email) ?? null;
+        const sub =
+          subscriptions.find((s) => s.clientEmail.toLowerCase() === email) ??
+          null;
 
         return {
           email,
@@ -116,7 +129,7 @@ export const AdminClientsPage: React.FC = () => {
           latestOrderStatus: latest.status,
           latestOrderDate: latest.updatedAt,
           subscription: sub,
-          isLocked: lockStatuses[email] ?? false
+          isLocked: lockStatuses[email] ?? false,
         };
       })
       .sort((a, b) => {
@@ -131,22 +144,25 @@ export const AdminClientsPage: React.FC = () => {
     if (!searchQuery.trim()) return clients;
     const q = searchQuery.toLowerCase();
     return clients.filter(
-      c => c.email.includes(q) || c.name.toLowerCase().includes(q)
+      (c) => c.email.includes(q) || c.name.toLowerCase().includes(q),
     );
   }, [clients, searchQuery]);
 
-  const lockedCount = clients.filter(c => c.isLocked).length;
+  const lockedCount = clients.filter((c) => c.isLocked).length;
 
   const getSubBadge = (sub: Subscription | null) => {
-    if (!sub) return <span className="text-[var(--ink-soft)] text-xs">No subscription</span>;
-    if (sub.status === 'active')
+    if (!sub)
+      return (
+        <span className="text-[var(--ink-soft)] text-xs">No subscription</span>
+      );
+    if (sub.status === "active")
       return (
         <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium inline-flex items-center gap-1 bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
           <CheckCircle className="w-3 h-3" />
           Active · {sub.plan}
         </span>
       );
-    if (sub.status === 'renewal_requested')
+    if (sub.status === "renewal_requested")
       return (
         <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium inline-flex items-center gap-1 bg-amber-500/15 text-amber-500 border border-amber-500/30">
           <Clock className="w-3 h-3" />
@@ -174,7 +190,8 @@ export const AdminClientsPage: React.FC = () => {
               All Clients
             </h1>
             <p className="text-sm text-[var(--ink-soft)] mt-1">
-              All unique client accounts derived from order data. Click a client to see all their orders.
+              All unique client accounts derived from order data. Click a client
+              to see all their orders.
             </p>
           </div>
           <div className="flex items-center gap-4 text-sm text-[var(--ink-soft)]">
@@ -186,8 +203,10 @@ export const AdminClientsPage: React.FC = () => {
             )}
             <span className="inline-flex items-center gap-2">
               <Users className="w-5 h-5" />
-              <span className="font-mono font-semibold text-[var(--ink)]">{clients.length}</span>
-              unique client{clients.length !== 1 ? 's' : ''}
+              <span className="font-mono font-semibold text-[var(--ink)]">
+                {clients.length}
+              </span>
+              unique client{clients.length !== 1 ? "s" : ""}
             </span>
           </div>
         </div>
@@ -198,7 +217,7 @@ export const AdminClientsPage: React.FC = () => {
             placeholder="Search by email or company name..."
             leftIcon={<Search className="w-4 h-4" />}
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
@@ -207,12 +226,16 @@ export const AdminClientsPage: React.FC = () => {
           <CardContent className="p-0">
             {isLoading ? (
               <div className="p-6 space-y-4">
-                {[1, 2, 3, 4].map(n => <Skeleton key={n} className="h-14 w-full" />)}
+                {[1, 2, 3, 4].map((n) => (
+                  <Skeleton key={n} className="h-14 w-full" />
+                ))}
               </div>
             ) : filteredClients.length === 0 ? (
               <div className="p-12 text-center text-[var(--ink-soft)]">
                 <Users className="w-12 h-12 mx-auto mb-3 opacity-40" />
-                <h3 className="text-base font-semibold font-heading text-[var(--ink)]">No Clients Found</h3>
+                <h3 className="text-base font-semibold font-heading text-[var(--ink)]">
+                  No Clients Found
+                </h3>
                 <p className="text-xs mt-1">Try adjusting your search query.</p>
               </div>
             ) : (
@@ -231,10 +254,10 @@ export const AdminClientsPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--contrast)]">
-                    {filteredClients.map(client => (
+                    {filteredClients.map((client) => (
                       <tr
                         key={client.email}
-                        className={`hover:bg-[var(--surface-soft)] transition-colors group ${client.isLocked ? 'bg-red-500/5' : ''}`}
+                        className={`hover:bg-[var(--surface-soft)] transition-colors group ${client.isLocked ? "bg-red-500/5" : ""}`}
                       >
                         <td className="px-6 py-4 font-bold text-[var(--ink)] font-heading">
                           <Link
@@ -259,7 +282,14 @@ export const AdminClientsPage: React.FC = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <Badge status={client.latestOrderStatus as Parameters<typeof Badge>[0]['status']} size="sm" />
+                          <Badge
+                            status={
+                              client.latestOrderStatus as Parameters<
+                                typeof Badge
+                              >[0]["status"]
+                            }
+                            size="sm"
+                          />
                         </td>
                         <td className="px-6 py-4">
                           {getSubBadge(client.subscription)}
@@ -277,7 +307,9 @@ export const AdminClientsPage: React.FC = () => {
                                 className="flex items-center gap-1 text-[10px] font-semibold text-emerald-500 hover:text-emerald-400 transition-colors disabled:opacity-50"
                               >
                                 <LockOpen className="w-3 h-3" />
-                                {unlockingEmail === client.email ? 'Unlocking…' : 'Unlock'}
+                                {unlockingEmail === client.email
+                                  ? "Unlocking…"
+                                  : "Unlock"}
                               </button>
                             </div>
                           ) : (

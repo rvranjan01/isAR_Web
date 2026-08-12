@@ -22,25 +22,6 @@ const PORT = process.env.PORT || 3000;
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/immverse_ar";
 
-// ── Legacy: Ensure upload folders exist (local dev only) ─────────────────────
-// These directories are no longer used in production.
-// Render's local filesystem is ephemeral — do not treat it as permanent storage.
-// Files are now uploaded to Cloudinary. See services/cloudinaryService.ts.
-//
-// import path from "path";
-// import fs from "fs";
-// const uploadsDir = path.join(__dirname, "../uploads");
-// const modelsDir = path.join(uploadsDir, "models");
-// const qrcodesDir = path.join(uploadsDir, "qrcodes");
-// if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-// if (!fs.existsSync(modelsDir)) fs.mkdirSync(modelsDir, { recursive: true });
-// if (!fs.existsSync(qrcodesDir)) fs.mkdirSync(qrcodesDir, { recursive: true });
-
-// ── CORS configuration ────────────────────────────────────────────────────────
-// DEPLOYMENT NOTE:
-// Set FRONTEND_URL in your Render environment variables to your Vercel domain.
-// Example: FRONTEND_URL=https://your-app.vercel.app
-//
 // In local development, localhost origins are always allowed automatically.
 // Do NOT use cors({ origin: "*" }) in production if auth tokens are involved.
 const allowedOrigins: string[] = [
@@ -64,15 +45,11 @@ app.use(
       return callback(new Error(`CORS: origin ${origin} not allowed`));
     },
     credentials: true,
-  })
+  }),
 );
 
 app.use(express.json());
 
-// Legacy: static file serving for local uploads (no longer needed in production)
-// Files are served directly from Cloudinary CDN.
-// import path from "path";
-// app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // ── Health check endpoint ─────────────────────────────────────────────────────
 // Used by Render to verify the service is running.
@@ -119,15 +96,6 @@ mongoose
     // Verify SMTP configuration
     await verifySMTP();
 
-    console.log("========================================");
-console.log("SMTP CHECK");
-console.log("HOST:", process.env.SMTP_HOST);
-console.log("PORT:", process.env.SMTP_PORT);
-console.log("SECURE:", process.env.SMTP_SECURE);
-console.log("USER:", process.env.SMTP_USER ? "SET" : "MISSING");
-console.log("PASS:", process.env.SMTP_PASS ? "SET" : "MISSING");
-console.log("FROM:", process.env.SMTP_FROM);
-console.log("========================================");
 
     // Start server
     app.listen(PORT, () => {

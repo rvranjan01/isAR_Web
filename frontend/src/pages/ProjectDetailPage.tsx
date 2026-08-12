@@ -143,91 +143,6 @@ export const ProjectDetailPage: React.FC = () => {
           {/* Left 2 Cols: Image & Details & 3D Viewer */}
           <div className="lg:col-span-2 space-y-6">
             {/* Interactive 3D Model Viewer Card (if arModelUrl is present) */}
-            {/* {project.arModelUrl && (
-              <Card glass glow className="overflow-hidden border-[#2D5BFF]/40">
-                <CardHeader className="pb-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Box className="w-5 h-5 text-[#2D5BFF]" /> 3D AR Model Preview
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      <a
-                        href={project.arModelUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-[var(--surface-soft)] text-[var(--ink)] border border-[var(--contrast)] hover:border-[#2D5BFF] transition-colors"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5 text-[#2D5BFF]" /> Open .GLB Link
-                      </a>
-                      <a
-                        href={project.arModelUrl}
-                        download={`${project.productName.replace(/\s+/g, '_')}_3D_Model.glb`}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-[#2D5BFF] text-white hover:bg-blue-600 transition-colors shadow-xs"
-                      >
-                        <Download className="w-3.5 h-3.5" /> Download .GLB
-                      </a>
-                    </div>
-                  </div>
-                  <CardDescription>
-                    Interactive 3D model viewport. Click and drag to rotate 360°, scroll to zoom in/out.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-1">
-                  <div className="relative w-full h-80 sm:h-96 rounded-2xl bg-black/5 dark:bg-black/40 overflow-hidden border border-[var(--contrast)] flex items-center justify-center">
-                    <model-viewer
-                      src={project.arModelUrl}
-                      alt={project.productName}
-                      auto-rotate
-                      camera-controls
-                      ar
-                      shadow-intensity="1"
-                      style={{ width: '100%', height: '100%' }}
-                    ></model-viewer>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <Card glass className="overflow-hidden">
-              <div className="relative h-80 sm:h-96 w-full bg-[var(--surface-soft)]">
-                <img
-                  src={project.productImageUrl}
-                  alt={project.productName}
-                  className="h-full w-full object-cover"
-                />
-                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-xl text-xs font-mono text-white flex items-center gap-2">
-                  <Layers className="w-3.5 h-3.5" />
-                  {project.productCategory}
-                </div>
-              </div>
-
-              <CardContent className="space-y-4 pt-6">
-                <div>
-                  <div className="text-xs font-mono uppercase tracking-wider text-[#2D5BFF] mb-1">
-                    {project.clientName}
-                  </div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold font-heading text-[var(--ink)]">
-                    {project.productName}
-                  </h1>
-                </div>
-
-                <p className="text-sm text-[var(--ink-soft)] leading-relaxed">
-                  {project.description}
-                </p>
-
-                {project.notes && (
-                  <div className="p-4 rounded-xl bg-[var(--surface-soft)] border border-[var(--contrast)] text-xs text-[var(--ink-soft)] flex items-start gap-2.5">
-                    <Info className="w-4 h-4 text-[#2D5BFF] shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="text-[var(--ink)] block mb-0.5">3D Engineering Note:</strong>
-                      {project.notes}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card> */}
-
-            {/* .......................  */}
             <CardContent className="space-y-4 pt-6">
               <div>
                 <div className="text-xs font-mono uppercase tracking-wider text-[#2D5BFF] mb-1">
@@ -301,7 +216,6 @@ export const ProjectDetailPage: React.FC = () => {
                 </div>
               )}
             </CardContent>
-            {/* .......................  */}
 
             {/* Pipeline Stage Stepper */}
             <Card glass>

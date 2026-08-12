@@ -1,15 +1,15 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { projectService } from '@/services/projectService';
-import { subscriptionService } from '@/services/subscriptionService';
-import { authService } from '@/services/authService';
-import { Project, Subscription } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { formatDate, calculateDaysRemaining } from '@/lib/utils';
-import { useNotifications } from '@/context/NotificationContext';
+import React, { useEffect, useState, useMemo } from "react";
+import { useParams, Link } from "react-router-dom";
+import { projectService } from "@/services/projectService";
+import { subscriptionService } from "@/services/subscriptionService";
+import { authService } from "@/services/authService";
+import { Project, Subscription } from "@/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { formatDate, calculateDaysRemaining } from "@/lib/utils";
+import { useNotifications } from "@/context/NotificationContext";
 import {
   ArrowLeft,
   ExternalLink,
@@ -21,13 +21,13 @@ import {
   User,
   Lock,
   LockOpen,
-  ShieldAlert
-} from 'lucide-react';
-import { PageTransition } from '@/components/layout/PageTransition';
+  ShieldAlert,
+} from "lucide-react";
+import { PageTransition } from "@/components/layout/PageTransition";
 
 export const AdminClientDetailPage: React.FC = () => {
   const { email } = useParams<{ email: string }>();
-  const decodedEmail = email ? decodeURIComponent(email) : '';
+  const decodedEmail = email ? decodeURIComponent(email) : "";
   const { addToast } = useNotifications();
 
   const [projects, setProjects] = useState<Project[]>([]);
@@ -45,14 +45,14 @@ export const AdminClientDetailPage: React.FC = () => {
         const [projData, subData, lockData] = await Promise.all([
           projectService.getProjects(decodedEmail),
           subscriptionService.getSubscriptionByEmail(decodedEmail),
-          authService.getLockStatus(decodedEmail)
+          authService.getLockStatus(decodedEmail),
         ]);
         setProjects(projData);
         setSubscription(subData);
         setIsLocked(lockData.isLocked);
         setLoginAttempts(lockData.loginAttempts);
       } catch (err) {
-        console.error('Failed to load client detail:', err);
+        console.error("Failed to load client detail:", err);
       } finally {
         setIsLoading(false);
       }
@@ -67,15 +67,16 @@ export const AdminClientDetailPage: React.FC = () => {
       setIsLocked(false);
       setLoginAttempts(0);
       addToast({
-        type: 'success',
-        title: 'Account Unlocked',
-        description: `${decodedEmail} can now log in again.`
+        type: "success",
+        title: "Account Unlocked",
+        description: `${decodedEmail} can now log in again.`,
       });
     } catch (err) {
       addToast({
-        type: 'error',
-        title: 'Unlock Failed',
-        description: err instanceof Error ? err.message : 'Could not unlock account.'
+        type: "error",
+        title: "Unlock Failed",
+        description:
+          err instanceof Error ? err.message : "Could not unlock account.",
       });
     } finally {
       setIsUnlocking(false);
@@ -83,25 +84,31 @@ export const AdminClientDetailPage: React.FC = () => {
   };
 
   const clientName = useMemo(
-    () => projects[0]?.clientName ?? decodedEmail.split('@')[0],
-    [projects, decodedEmail]
+    () => projects[0]?.clientName ?? decodedEmail.split("@")[0],
+    [projects, decodedEmail],
   );
 
-  const completedCount = projects.filter(p => p.status === 'Completed' || p.status === 'Delivered').length;
-  const inProgressCount = projects.filter(p => p.status !== 'Completed' && p.status !== 'Delivered').length;
+  const completedCount = projects.filter(
+    (p) => p.status === "Completed" || p.status === "Delivered",
+  ).length;
+  const inProgressCount = projects.filter(
+    (p) => p.status !== "Completed" && p.status !== "Delivered",
+  ).length;
 
-  const daysRemaining = subscription ? calculateDaysRemaining(subscription.renewalDate) : 0;
+  const daysRemaining = subscription
+    ? calculateDaysRemaining(subscription.renewalDate)
+    : 0;
 
   const getSubStatusDisplay = () => {
     if (!subscription) return null;
-    if (subscription.status === 'active') {
+    if (subscription.status === "active") {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-mono font-medium bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
           <CheckCircle className="w-3 h-3" /> Active
         </span>
       );
     }
-    if (subscription.status === 'renewal_requested') {
+    if (subscription.status === "renewal_requested") {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-mono font-medium bg-amber-500/15 text-amber-500 border border-amber-500/30">
           <Clock className="w-3 h-3" /> Renewal Requested
@@ -137,8 +144,9 @@ export const AdminClientDetailPage: React.FC = () => {
               <div>
                 <p className="text-sm font-bold text-red-500">Account Locked</p>
                 <p className="text-xs text-[var(--ink-soft)]">
-                  This client has been locked after {loginAttempts} failed login attempt{loginAttempts !== 1 ? 's' : ''}.
-                  They cannot log in until unlocked.
+                  This client has been locked after {loginAttempts} failed login
+                  attempt{loginAttempts !== 1 ? "s" : ""}. They cannot log in
+                  until unlocked.
                 </p>
               </div>
             </div>
@@ -179,7 +187,9 @@ export const AdminClientDetailPage: React.FC = () => {
                   )}
                 </div>
               )}
-              <p className="text-sm font-mono text-[var(--ink-soft)] mt-0.5">{decodedEmail}</p>
+              <p className="text-sm font-mono text-[var(--ink-soft)] mt-0.5">
+                {decodedEmail}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -195,7 +205,11 @@ export const AdminClientDetailPage: React.FC = () => {
               </Button>
             )}
             <Link to="/admin/subscriptions">
-              <Button variant="outline" size="sm" leftIcon={<Calendar className="w-3.5 h-3.5" />}>
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<Calendar className="w-3.5 h-3.5" />}
+              >
                 Manage Subscription
               </Button>
             </Link>
@@ -206,12 +220,18 @@ export const AdminClientDetailPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <Card glass>
             <CardHeader className="flex flex-row items-center justify-between pb-2 border-b-0">
-              <span className="text-xs font-semibold uppercase text-[var(--ink-soft)]">Total Orders</span>
+              <span className="text-xs font-semibold uppercase text-[var(--ink-soft)]">
+                Total Orders
+              </span>
               <Layers className="w-5 h-5 text-[#2D5BFF]" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-extrabold font-heading">
-                {isLoading ? <Skeleton className="h-9 w-12" /> : projects.length}
+                {isLoading ? (
+                  <Skeleton className="h-9 w-12" />
+                ) : (
+                  projects.length
+                )}
               </div>
               <p className="text-xs text-[var(--ink-soft)] mt-1">
                 {inProgressCount} in progress · {completedCount} completed
@@ -221,7 +241,9 @@ export const AdminClientDetailPage: React.FC = () => {
 
           <Card glass>
             <CardHeader className="flex flex-row items-center justify-between pb-2 border-b-0">
-              <span className="text-xs font-semibold uppercase text-[var(--ink-soft)]">Subscription</span>
+              <span className="text-xs font-semibold uppercase text-[var(--ink-soft)]">
+                Subscription
+              </span>
               <Calendar className="w-5 h-5 text-purple-500" />
             </CardHeader>
             <CardContent>
@@ -240,11 +262,13 @@ export const AdminClientDetailPage: React.FC = () => {
                   {subscription && (
                     <p className="text-xs text-[var(--ink-soft)]">
                       Renewal: {formatDate(subscription.renewalDate)}
-                      {subscription.status === 'active' && daysRemaining <= 7 && daysRemaining >= 0 && (
-                        <span className="ml-1 text-amber-500 font-medium">
-                          ({daysRemaining}d remaining)
-                        </span>
-                      )}
+                      {subscription.status === "active" &&
+                        daysRemaining <= 7 &&
+                        daysRemaining >= 0 && (
+                          <span className="ml-1 text-amber-500 font-medium">
+                            ({daysRemaining}d remaining)
+                          </span>
+                        )}
                     </p>
                   )}
                 </div>
@@ -254,14 +278,18 @@ export const AdminClientDetailPage: React.FC = () => {
 
           <Card glass>
             <CardHeader className="flex flex-row items-center justify-between pb-2 border-b-0">
-              <span className="text-xs font-semibold uppercase text-[var(--ink-soft)]">Completed Models</span>
+              <span className="text-xs font-semibold uppercase text-[var(--ink-soft)]">
+                Completed Models
+              </span>
               <CheckCircle className="w-5 h-5 text-emerald-500" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-extrabold font-heading text-emerald-500">
                 {isLoading ? <Skeleton className="h-9 w-12" /> : completedCount}
               </div>
-              <p className="text-xs text-[var(--ink-soft)] mt-1">Ready for QR scanning &amp; AR delivery</p>
+              <p className="text-xs text-[var(--ink-soft)] mt-1">
+                Ready for QR scanning &amp; AR delivery
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -277,13 +305,19 @@ export const AdminClientDetailPage: React.FC = () => {
             <CardContent className="p-0">
               {isLoading ? (
                 <div className="p-6 space-y-4">
-                  {[1, 2, 3].map(n => <Skeleton key={n} className="h-14 w-full" />)}
+                  {[1, 2, 3].map((n) => (
+                    <Skeleton key={n} className="h-14 w-full" />
+                  ))}
                 </div>
               ) : projects.length === 0 ? (
                 <div className="p-12 text-center text-[var(--ink-soft)]">
                   <Layers className="w-12 h-12 mx-auto mb-3 opacity-40" />
-                  <h3 className="text-base font-semibold font-heading text-[var(--ink)]">No Orders Found</h3>
-                  <p className="text-xs mt-1">This client has no orders in the system.</p>
+                  <h3 className="text-base font-semibold font-heading text-[var(--ink)]">
+                    No Orders Found
+                  </h3>
+                  <p className="text-xs mt-1">
+                    This client has no orders in the system.
+                  </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -300,13 +334,18 @@ export const AdminClientDetailPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[var(--contrast)]">
-                      {projects.map(project => (
-                        <tr key={project.id} className="hover:bg-[var(--surface-soft)] transition-colors">
+                      {projects.map((project) => (
+                        <tr
+                          key={project.id}
+                          className="hover:bg-[var(--surface-soft)] transition-colors"
+                        >
                           <td className="px-6 py-4 font-mono font-bold text-[#2D5BFF]">
                             {project.orderId}
                           </td>
                           <td className="px-6 py-4 font-medium text-[var(--ink)] max-w-xs">
-                            <div className="line-clamp-1">{project.productName}</div>
+                            <div className="line-clamp-1">
+                              {project.productName}
+                            </div>
                           </td>
                           <td className="px-6 py-4">
                             <span className="px-2 py-0.5 rounded-md bg-[var(--surface-soft)] border border-[var(--contrast)] font-mono text-[10px]">
@@ -324,7 +363,11 @@ export const AdminClientDetailPage: React.FC = () => {
                           </td>
                           <td className="px-6 py-4 text-right">
                             <Link to={`/admin/orders/${project.id}`}>
-                              <Button variant="outline" size="sm" rightIcon={<ExternalLink className="w-3 h-3" />}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                rightIcon={<ExternalLink className="w-3 h-3" />}
+                              >
                                 Manage
                               </Button>
                             </Link>

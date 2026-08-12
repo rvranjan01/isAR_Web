@@ -1,12 +1,12 @@
-import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider } from '@/context/ThemeContext';
-import { AuthProvider } from '@/context/AuthContext';
-import { NotificationProvider } from '@/context/NotificationContext';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { ToastContainer } from '@/components/ui/Toast';
-import { AppRoutes } from '@/routes/AppRoutes';
+import React from "react";
+import { BrowserRouter } from "react-router-dom";
+import { ThemeProvider } from "@/context/ThemeContext";
+import { AuthProvider } from "@/context/AuthContext";
+import { NotificationProvider } from "@/context/NotificationContext";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { ToastContainer } from "@/components/ui/Toast";
+import { AppRoutes } from "@/routes/AppRoutes";
 
 export const App: React.FC = () => {
   return (

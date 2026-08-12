@@ -1,31 +1,40 @@
-import React, { useEffect, useState } from 'react';
-import { subscriptionService } from '@/services/subscriptionService';
-import { Subscription } from '@/types';
-import { useNotifications } from '@/context/NotificationContext';
-import { Card, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
-import { Input, Select } from '@/components/ui/Input';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { formatDate } from '@/lib/utils';
-import { Users, RefreshCw, CheckCircle, AlertTriangle, Edit3, Clock } from 'lucide-react';
-import { PageTransition } from '@/components/layout/PageTransition';
+import React, { useEffect, useState } from "react";
+import { subscriptionService } from "@/services/subscriptionService";
+import { Subscription } from "@/types";
+import { useNotifications } from "@/context/NotificationContext";
+import { Card, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
+import { Input, Select } from "@/components/ui/Input";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { formatDate } from "@/lib/utils";
+import {
+  Users,
+  RefreshCw,
+  CheckCircle,
+  AlertTriangle,
+  Edit3,
+  Clock,
+} from "lucide-react";
+import { PageTransition } from "@/components/layout/PageTransition";
 
-type FilterStatus = 'ALL' | 'active' | 'expired' | 'renewal_requested';
+type FilterStatus = "ALL" | "active" | "expired" | "renewal_requested";
 
 export const AdminSubscriptionsPage: React.FC = () => {
   const { addToast } = useNotifications();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState<FilterStatus>('ALL');
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("ALL");
   const [editingSub, setEditingSub] = useState<Subscription | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [confirmingRenewalId, setConfirmingRenewalId] = useState<string | null>(null);
+  const [confirmingRenewalId, setConfirmingRenewalId] = useState<string | null>(
+    null,
+  );
 
   // Modal form states
-  const [plan, setPlan] = useState<'monthly' | 'yearly'>('yearly');
-  const [status, setStatus] = useState<'active' | 'expired'>('active');
-  const [renewalDate, setRenewalDate] = useState('');
+  const [plan, setPlan] = useState<"monthly" | "yearly">("yearly");
+  const [status, setStatus] = useState<"active" | "expired">("active");
+  const [renewalDate, setRenewalDate] = useState("");
 
   useEffect(() => {
     fetchSubscriptions();
@@ -37,7 +46,7 @@ export const AdminSubscriptionsPage: React.FC = () => {
       const data = await subscriptionService.getSubscriptions();
       setSubscriptions(data);
     } catch (err) {
-      console.error('Failed to fetch subscriptions:', err);
+      console.error("Failed to fetch subscriptions:", err);
     } finally {
       setIsLoading(false);
     }
@@ -46,7 +55,7 @@ export const AdminSubscriptionsPage: React.FC = () => {
   const openEditModal = (sub: Subscription) => {
     setEditingSub(sub);
     setPlan(sub.plan);
-    setStatus(sub.status === 'renewal_requested' ? 'active' : sub.status);
+    setStatus(sub.status === "renewal_requested" ? "active" : sub.status);
     setRenewalDate(sub.renewalDate);
   };
 
@@ -55,25 +64,31 @@ export const AdminSubscriptionsPage: React.FC = () => {
     if (!editingSub) return;
     setIsUpdating(true);
     try {
-      const updated = await subscriptionService.updateSubscription(editingSub.id, {
-        plan,
-        status,
-        renewalDate
-      });
+      const updated = await subscriptionService.updateSubscription(
+        editingSub.id,
+        {
+          plan,
+          status,
+          renewalDate,
+        },
+      );
 
-      setSubscriptions(prev => prev.map(s => (s.id === updated.id ? updated : s)));
+      setSubscriptions((prev) =>
+        prev.map((s) => (s.id === updated.id ? updated : s)),
+      );
       addToast({
-        type: 'success',
-        title: 'Subscription Updated',
-        description: `Updated plan for ${updated.clientName}.`
+        type: "success",
+        title: "Subscription Updated",
+        description: `Updated plan for ${updated.clientName}.`,
       });
       setEditingSub(null);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Subscription update failed';
+      const msg =
+        err instanceof Error ? err.message : "Subscription update failed";
       addToast({
-        type: 'error',
-        title: 'Update Error',
-        description: msg
+        type: "error",
+        title: "Update Error",
+        description: msg,
       });
     } finally {
       setIsUpdating(false);
@@ -88,29 +103,34 @@ export const AdminSubscriptionsPage: React.FC = () => {
     setConfirmingRenewalId(sub.id);
     try {
       const updated = await subscriptionService.confirmRenewal(sub.id);
-      setSubscriptions(prev => prev.map(s => (s.id === updated.id ? updated : s)));
+      setSubscriptions((prev) =>
+        prev.map((s) => (s.id === updated.id ? updated : s)),
+      );
       addToast({
-        type: 'success',
-        title: 'Renewal Confirmed',
-        description: `${updated.clientName}'s subscription renewed until ${formatDate(updated.renewalDate)}.`
+        type: "success",
+        title: "Renewal Confirmed",
+        description: `${updated.clientName}'s subscription renewed until ${formatDate(updated.renewalDate)}.`,
       });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Could not confirm renewal';
-      addToast({ type: 'error', title: 'Renewal Error', description: msg });
+      const msg =
+        err instanceof Error ? err.message : "Could not confirm renewal";
+      addToast({ type: "error", title: "Renewal Error", description: msg });
     } finally {
       setConfirmingRenewalId(null);
     }
   };
 
-  const renewalRequestedSubs = subscriptions.filter(s => s.status === 'renewal_requested');
+  const renewalRequestedSubs = subscriptions.filter(
+    (s) => s.status === "renewal_requested",
+  );
 
-  const filteredSubs = subscriptions.filter(s => {
-    if (filterStatus === 'ALL') return true;
+  const filteredSubs = subscriptions.filter((s) => {
+    if (filterStatus === "ALL") return true;
     return s.status === filterStatus;
   });
 
   const getStatusBadge = (sub: Subscription) => {
-    if (sub.status === 'active') {
+    if (sub.status === "active") {
       return (
         <span className="px-2.5 py-1 rounded-full text-xs font-mono font-medium capitalize inline-flex items-center gap-1 bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
           <CheckCircle className="w-3 h-3" />
@@ -118,7 +138,7 @@ export const AdminSubscriptionsPage: React.FC = () => {
         </span>
       );
     }
-    if (sub.status === 'renewal_requested') {
+    if (sub.status === "renewal_requested") {
       return (
         <span className="px-2.5 py-1 rounded-full text-xs font-mono font-medium capitalize inline-flex items-center gap-1 bg-amber-500/15 text-amber-500 border border-amber-500/30">
           <Clock className="w-3 h-3" />
@@ -147,7 +167,8 @@ export const AdminSubscriptionsPage: React.FC = () => {
               Client Subscription Plans
             </h1>
             <p className="text-sm text-[var(--ink-soft)] mt-1">
-              View active client accounts, confirm renewal requests, and adjust plan tiers.
+              View active client accounts, confirm renewal requests, and adjust
+              plan tiers.
             </p>
           </div>
 
@@ -172,26 +193,35 @@ export const AdminSubscriptionsPage: React.FC = () => {
               </div>
               <div>
                 <h2 className="font-heading font-bold text-sm text-amber-600 dark:text-amber-300">
-                  {renewalRequestedSubs.length} Renewal Request{renewalRequestedSubs.length > 1 ? 's' : ''} Awaiting Confirmation
+                  {renewalRequestedSubs.length} Renewal Request
+                  {renewalRequestedSubs.length > 1 ? "s" : ""} Awaiting
+                  Confirmation
                 </h2>
                 <p className="text-xs text-amber-600/70 dark:text-amber-300/70">
-                  These clients have requested renewal. Confirm to extend their plan by the existing interval.
+                  These clients have requested renewal. Confirm to extend their
+                  plan by the existing interval.
                 </p>
               </div>
             </div>
             <div className="space-y-2">
-              {renewalRequestedSubs.map(sub => (
+              {renewalRequestedSubs.map((sub) => (
                 <div
                   key={sub.id}
                   className="flex items-center justify-between gap-4 bg-[var(--surface)] rounded-xl border border-amber-500/30 px-4 py-3"
                 >
                   <div className="flex items-center gap-4">
                     <div>
-                      <div className="font-semibold text-sm text-[var(--ink)] font-heading">{sub.clientName}</div>
-                      <div className="text-xs font-mono text-[var(--ink-soft)]">{sub.clientEmail}</div>
+                      <div className="font-semibold text-sm text-[var(--ink)] font-heading">
+                        {sub.clientName}
+                      </div>
+                      <div className="text-xs font-mono text-[var(--ink-soft)]">
+                        {sub.clientEmail}
+                      </div>
                     </div>
                     <div className="hidden sm:block text-xs text-[var(--ink-soft)]">
-                      <span className="capitalize font-medium text-[#2D5BFF]">{sub.plan} Plan</span>
+                      <span className="capitalize font-medium text-[#2D5BFF]">
+                        {sub.plan} Plan
+                      </span>
                       {sub.renewalRequestedAt && (
                         <span className="ml-2 opacity-70">
                           Requested {formatDate(sub.renewalRequestedAt)}
@@ -218,20 +248,29 @@ export const AdminSubscriptionsPage: React.FC = () => {
         <div className="flex items-center gap-1 p-1 bg-[var(--surface-soft)] rounded-xl border border-[var(--contrast)] w-fit flex-wrap">
           {(
             [
-              { value: 'ALL', label: `All Clients (${subscriptions.length})` },
-              { value: 'active', label: `Active (${subscriptions.filter(s => s.status === 'active').length})` },
-              { value: 'renewal_requested', label: `Renewal Requested (${renewalRequestedSubs.length})` },
-              { value: 'expired', label: `Expired (${subscriptions.filter(s => s.status === 'expired').length})` }
+              { value: "ALL", label: `All Clients (${subscriptions.length})` },
+              {
+                value: "active",
+                label: `Active (${subscriptions.filter((s) => s.status === "active").length})`,
+              },
+              {
+                value: "renewal_requested",
+                label: `Renewal Requested (${renewalRequestedSubs.length})`,
+              },
+              {
+                value: "expired",
+                label: `Expired (${subscriptions.filter((s) => s.status === "expired").length})`,
+              },
             ] as { value: FilterStatus; label: string }[]
-          ).map(tab => (
+          ).map((tab) => (
             <button
               key={tab.value}
               onClick={() => setFilterStatus(tab.value)}
               className={`px-4 py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors whitespace-nowrap ${
                 filterStatus === tab.value
-                  ? 'bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-xs'
-                  : 'text-[var(--ink-soft)] hover:text-[var(--ink)]'
-              } ${tab.value === 'renewal_requested' && renewalRequestedSubs.length > 0 ? 'text-amber-500' : ''}`}
+                  ? "bg-[var(--surface)] text-[var(--ink)] font-semibold shadow-xs"
+                  : "text-[var(--ink-soft)] hover:text-[var(--ink)]"
+              } ${tab.value === "renewal_requested" && renewalRequestedSubs.length > 0 ? "text-amber-500" : ""}`}
             >
               {tab.label}
             </button>
@@ -243,12 +282,16 @@ export const AdminSubscriptionsPage: React.FC = () => {
           <CardContent className="p-0">
             {isLoading ? (
               <div className="p-6 space-y-4">
-                {[1, 2, 3].map(n => <Skeleton key={n} className="h-12 w-full" />)}
+                {[1, 2, 3].map((n) => (
+                  <Skeleton key={n} className="h-12 w-full" />
+                ))}
               </div>
             ) : filteredSubs.length === 0 ? (
               <div className="p-12 text-center text-[var(--ink-soft)]">
                 <Users className="w-12 h-12 mx-auto mb-3 opacity-40" />
-                <h3 className="text-base font-semibold font-heading text-[var(--ink)]">No Subscriptions Found</h3>
+                <h3 className="text-base font-semibold font-heading text-[var(--ink)]">
+                  No Subscriptions Found
+                </h3>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -265,11 +308,13 @@ export const AdminSubscriptionsPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--contrast)]">
-                    {filteredSubs.map(sub => (
+                    {filteredSubs.map((sub) => (
                       <tr
                         key={sub.id}
                         className={`hover:bg-[var(--surface-soft)] transition-colors ${
-                          sub.status === 'renewal_requested' ? 'bg-amber-500/5' : ''
+                          sub.status === "renewal_requested"
+                            ? "bg-amber-500/5"
+                            : ""
                         }`}
                       >
                         <td className="px-6 py-4 font-bold text-[var(--ink)] font-heading">
@@ -281,9 +326,7 @@ export const AdminSubscriptionsPage: React.FC = () => {
                         <td className="px-6 py-4 capitalize font-semibold text-[#2D5BFF]">
                           {sub.plan} Plan
                         </td>
-                        <td className="px-6 py-4">
-                          {getStatusBadge(sub)}
-                        </td>
+                        <td className="px-6 py-4">{getStatusBadge(sub)}</td>
                         <td className="px-6 py-4 font-mono text-[var(--ink)]">
                           {formatDate(sub.renewalDate)}
                         </td>
@@ -292,13 +335,15 @@ export const AdminSubscriptionsPage: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            {sub.status === 'renewal_requested' && (
+                            {sub.status === "renewal_requested" && (
                               <Button
                                 variant="primary"
                                 size="sm"
                                 onClick={() => handleConfirmRenewal(sub)}
                                 isLoading={confirmingRenewalId === sub.id}
-                                leftIcon={<CheckCircle className="w-3.5 h-3.5" />}
+                                leftIcon={
+                                  <CheckCircle className="w-3.5 h-3.5" />
+                                }
                               >
                                 Confirm
                               </Button>
@@ -333,20 +378,22 @@ export const AdminSubscriptionsPage: React.FC = () => {
             <Select
               label="Plan Tier"
               value={plan}
-              onChange={e => setPlan(e.target.value as 'monthly' | 'yearly')}
+              onChange={(e) => setPlan(e.target.value as "monthly" | "yearly")}
               options={[
-                { value: 'yearly', label: 'Yearly Plan' },
-                { value: 'monthly', label: 'Monthly Plan' }
+                { value: "yearly", label: "Yearly Plan" },
+                { value: "monthly", label: "Monthly Plan" },
               ]}
             />
 
             <Select
               label="Subscription Status"
               value={status}
-              onChange={e => setStatus(e.target.value as 'active' | 'expired')}
+              onChange={(e) =>
+                setStatus(e.target.value as "active" | "expired")
+              }
               options={[
-                { value: 'active', label: 'Active (AR QR Enabled)' },
-                { value: 'expired', label: 'Expired (AR QR Disabled)' }
+                { value: "active", label: "Active (AR QR Enabled)" },
+                { value: "expired", label: "Expired (AR QR Disabled)" },
               ]}
             />
 
@@ -354,11 +401,15 @@ export const AdminSubscriptionsPage: React.FC = () => {
               label="Renewal Expiration Date"
               type="date"
               value={renewalDate}
-              onChange={e => setRenewalDate(e.target.value)}
+              onChange={(e) => setRenewalDate(e.target.value)}
             />
 
             <div className="flex justify-end gap-3 pt-4 border-t border-[var(--contrast)]">
-              <Button type="button" variant="outline" onClick={() => setEditingSub(null)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setEditingSub(null)}
+              >
                 Cancel
               </Button>
               <Button type="submit" variant="primary" isLoading={isUpdating}>

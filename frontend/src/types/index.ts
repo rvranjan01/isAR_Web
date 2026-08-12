@@ -1,12 +1,12 @@
-export type Role = 'client' | 'admin';
+export type Role = "client" | "admin";
 
-export type ProjectStatus = 
-  | 'Uploaded' 
-  | 'Pending Review' 
-  | 'AR In Progress' 
-  | 'Quality Check' 
-  | 'Completed' 
-  | 'Delivered';
+export type ProjectStatus =
+  | "Uploaded"
+  | "Pending Review"
+  | "AR In Progress"
+  | "Quality Check"
+  | "Completed"
+  | "Delivered";
 
 export interface User {
   id: string;
@@ -23,7 +23,7 @@ export interface Project {
   clientEmail: string;
   clientName: string;
   productName: string;
-  productCategory: 'AuRa AR Menu' | 'Teleport 3D Twin';
+  productCategory: "AuRa AR Menu" | "Teleport 3D Twin";
   description: string;
   status: ProjectStatus;
   productImageUrl: string;
@@ -40,8 +40,8 @@ export interface Subscription {
   id: string;
   clientEmail: string;
   clientName: string;
-  plan: 'monthly' | 'yearly';
-  status: 'active' | 'expired' | 'renewal_requested';
+  plan: "monthly" | "yearly";
+  status: "active" | "expired" | "renewal_requested";
   renewalDate: string;
   startDate: string;
   renewalRequestedAt?: string; // ISO timestamp set when client requests renewal
@@ -52,7 +52,7 @@ export interface Notification {
   recipientEmail: string;
   title: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
+  type: "info" | "success" | "warning" | "error";
   read: boolean;
   createdAt: string;
   link?: string;
@@ -65,7 +65,7 @@ export interface AuthResponse {
 
 export interface ToastMessage {
   id: string;
-  type: 'success' | 'error' | 'info' | 'warning';
+  type: "success" | "error" | "info" | "warning";
   title: string;
   description?: string;
 }

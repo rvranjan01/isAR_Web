@@ -13,7 +13,7 @@ export const Footer: React.FC = () => {
 
         <div className="flex items-center gap-6">
           <a
-            href="https://demo-of-imstdio.netlify.app"
+            href="https://immversestudios.com/"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-[var(--ink)] hover:underline transition-colors"
@@ -21,7 +21,7 @@ export const Footer: React.FC = () => {
             Home Page
           </a>
           <a
-            href="https://demo-of-imstdio.netlify.app/services/offices"
+            href="https://immversestudios.com/services/weddings"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-[var(--ink)] hover:underline transition-colors"
@@ -29,7 +29,7 @@ export const Footer: React.FC = () => {
             Teleport 3D
           </a>
           <a
-            href="https://demo-of-imstdio.netlify.app/services/restaurants"
+            href="https://immversestudios.com/services/restaurants"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-[var(--ink)] hover:underline transition-colors"

@@ -156,7 +156,10 @@ export const unlockClient = async (
     user.loginAttempts = 0;
     await user.save();
 
-    res.json({ message: "Account unlocked successfully", email: normalizedEmail });
+    res.json({
+      message: "Account unlocked successfully",
+      email: normalizedEmail,
+    });
   } catch (error) {
     console.error("Unlock error:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -169,7 +172,7 @@ export const getClientLockStatus = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const email = req.params['email'] as string;
+    const email = req.params["email"] as string;
     const normalizedEmail = decodeURIComponent(email).trim().toLowerCase();
 
     const user = await User.findOne({ email: normalizedEmail, role: "client" });

@@ -1,16 +1,34 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/context/AuthContext';
-import { useNotifications } from '@/context/NotificationContext';
-import { loginSchema, LoginFormData } from '@/lib/schema';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
-import { Box, Mail, KeyRound, ArrowRight, ExternalLink, Lock, AlertTriangle, ShieldAlert } from 'lucide-react';
-import { PageTransition } from '@/components/layout/PageTransition';
-import { AccountLockedError, InvalidOrderIdError } from '@/services/authService';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuth } from "@/context/AuthContext";
+import { useNotifications } from "@/context/NotificationContext";
+import { loginSchema, LoginFormData } from "@/lib/schema";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/Card";
+import {
+  Box,
+  Mail,
+  KeyRound,
+  ArrowRight,
+  ExternalLink,
+  Lock,
+  AlertTriangle,
+  ShieldAlert,
+} from "lucide-react";
+import { PageTransition } from "@/components/layout/PageTransition";
+import {
+  AccountLockedError,
+  InvalidOrderIdError,
+} from "@/services/authService";
 
 interface LockedInfo {
   adminEmail: string;
@@ -27,13 +45,13 @@ export const LoginPage: React.FC = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
-      orderId: ''
-    }
+      email: "",
+      orderId: "",
+    },
   });
 
   const onSubmit = async (data: LoginFormData) => {
@@ -42,15 +60,15 @@ export const LoginPage: React.FC = () => {
     try {
       const user = await login(data.email, data.orderId);
       addToast({
-        type: 'success',
-        title: 'Authentication Successful',
-        description: `Welcome back, ${user.name || user.email}`
+        type: "success",
+        title: "Authentication Successful",
+        description: `Welcome back, ${user.name || user.email}`,
       });
 
-      if (user.role === 'admin') {
-        navigate('/admin');
+      if (user.role === "admin") {
+        navigate("/admin");
       } else {
-        navigate('/dashboard');
+        navigate("/dashboard");
       }
     } catch (err: unknown) {
       if (err instanceof AccountLockedError) {
@@ -61,19 +79,19 @@ export const LoginPage: React.FC = () => {
           setAttemptsLeft(err.attemptsLeft);
         }
         addToast({
-          type: 'error',
-          title: 'Login Failed',
-          description: err.message
+          type: "error",
+          title: "Login Failed",
+          description: err.message,
         });
       } else {
         const errorMessage =
           err instanceof Error
             ? err.message
-            : 'Invalid credentials. Please verify your Email and Order ID.';
+            : "Invalid credentials. Please verify your Email and Order ID.";
         addToast({
-          type: 'error',
-          title: 'Login Failed',
-          description: errorMessage
+          type: "error",
+          title: "Login Failed",
+          description: errorMessage,
         });
       }
     } finally {
@@ -86,7 +104,7 @@ export const LoginPage: React.FC = () => {
       <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-md flex-col justify-center px-4 py-12">
         <div className="text-center mb-8">
           <a
-            href="https://demo-of-imstdio.netlify.app"
+            href="https://immversestudios.com/"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 mb-3 px-3 py-1.5 rounded-full bg-[#2D5BFF]/10 text-[#2D5BFF] text-xs font-semibold hover:bg-[#2D5BFF]/20 transition-colors"
@@ -99,14 +117,18 @@ export const LoginPage: React.FC = () => {
             Client &amp; Order Portal
           </h1>
           <p className="text-sm text-[var(--ink-soft)] mt-2">
-            Enter your email address and Order ID to access your 3D/AR projects and status updates.
+            Enter your email address and Order ID to access your 3D/AR projects
+            and status updates.
           </p>
         </div>
 
         <Card glass glow className="w-full">
           <CardHeader>
             <CardTitle>Sign In</CardTitle>
-            <CardDescription>No password required — check your confirmation email for your Order ID.</CardDescription>
+            <CardDescription>
+              No password required — check your confirmation email for your
+              Order ID.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {/* ── Account Locked Banner ──────────────────────────────────── */}
@@ -117,15 +139,17 @@ export const LoginPage: React.FC = () => {
                     <Lock className="w-5 h-5 text-red-500" />
                   </div>
                   <div>
-                    <p className="font-heading font-bold text-red-500 text-sm">Account Locked</p>
+                    <p className="font-heading font-bold text-red-500 text-sm">
+                      Account Locked
+                    </p>
                     <p className="text-xs text-[var(--ink-soft)] mt-0.5">
                       Too many failed login attempts
                     </p>
                   </div>
                 </div>
                 <p className="text-xs text-[var(--ink-soft)] leading-relaxed">
-                  Your account has been locked after 3 consecutive failed login attempts. Please
-                  contact the admin to unlock your account.
+                  Your account has been locked after 3 consecutive failed login
+                  attempts. Please contact the admin to unlock your account.
                 </p>
                 <a
                   href={`mailto:${lockedInfo.adminEmail}`}
@@ -142,7 +166,7 @@ export const LoginPage: React.FC = () => {
                   placeholder="client@restaurant.com"
                   leftIcon={<Mail className="w-4 h-4" />}
                   error={errors.email?.message}
-                  {...register('email')}
+                  {...register("email")}
                 />
 
                 <Input
@@ -151,7 +175,7 @@ export const LoginPage: React.FC = () => {
                   leftIcon={<KeyRound className="w-4 h-4" />}
                   helperText="Format: ORD-XXXX (case-insensitive)"
                   error={errors.orderId?.message}
-                  {...register('orderId')}
+                  {...register("orderId")}
                 />
 
                 {/* Attempts warning */}
@@ -159,10 +183,11 @@ export const LoginPage: React.FC = () => {
                   <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5">
                     <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                     <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
-                      Incorrect Order ID.{' '}
+                      Incorrect Order ID.{" "}
                       <span className="font-bold">
-                        {attemptsLeft} attempt{attemptsLeft !== 1 ? 's' : ''} remaining
-                      </span>{' '}
+                        {attemptsLeft} attempt{attemptsLeft !== 1 ? "s" : ""}{" "}
+                        remaining
+                      </span>{" "}
                       before your account is locked.
                     </p>
                   </div>

@@ -100,7 +100,7 @@ export const AdminOrderDetailPage: React.FC = () => {
       const updated = await projectService.uploadARModel(
         project.id,
         modelFileUrl || undefined,
-        glbFile
+        glbFile,
       );
       setProject(updated);
       addToast({
@@ -130,11 +130,14 @@ export const AdminOrderDetailPage: React.FC = () => {
       addToast({
         type: "success",
         title: "QR Code Processed",
-        description: qrCodeFile ? "Custom QR Code uploaded." : "Auto QR Code generated.",
+        description: qrCodeFile
+          ? "Custom QR Code uploaded."
+          : "Auto QR Code generated.",
       });
       setQrCodeFile(null); // Reset input
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "QR Code processing failed";
+      const msg =
+        err instanceof Error ? err.message : "QR Code processing failed";
       addToast({
         type: "error",
         title: "Error",
@@ -253,7 +256,8 @@ export const AdminOrderDetailPage: React.FC = () => {
             <Card glass>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Upload className="w-5 h-5 text-[#2D5BFF]" /> Upload 3D Model (.GLB)
+                  <Upload className="w-5 h-5 text-[#2D5BFF]" /> Upload 3D Model
+                  (.GLB)
                 </CardTitle>
                 <CardDescription>
                   Upload the `.glb` file for the AR viewer.
@@ -338,7 +342,8 @@ export const AdminOrderDetailPage: React.FC = () => {
             <Card glass>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <QrCode className="w-5 h-5 text-[#2D5BFF]" /> QR Code Management
+                  <QrCode className="w-5 h-5 text-[#2D5BFF]" /> QR Code
+                  Management
                 </CardTitle>
                 <CardDescription>
                   Upload a custom QR Code image or auto-generate one.
@@ -374,7 +379,9 @@ export const AdminOrderDetailPage: React.FC = () => {
                       leftIcon={<Upload className="w-4 h-4 text-[#2D5BFF]" />}
                       disabled={!qrCodeFile && isHandlingQRCode}
                     >
-                      {qrCodeFile ? "Upload Custom QR" : "Generate Auto QR Code"}
+                      {qrCodeFile
+                        ? "Upload Custom QR"
+                        : "Generate Auto QR Code"}
                     </Button>
                   </div>
                 </form>
@@ -465,14 +472,11 @@ export const AdminOrderDetailPage: React.FC = () => {
                         />
                       ) : null}
                     </div>
-
                   </div>
                 ) : (
                   <div className="p-8 rounded-2xl bg-[var(--surface-soft)] border border-[var(--contrast)] text-xs text-[var(--ink-soft)] space-y-2">
                     <QrCode className="w-10 h-10 mx-auto text-[var(--ink-soft)] opacity-40" />
-                    <p>
-                      QR Code pending generation or upload.
-                    </p>
+                    <p>QR Code pending generation or upload.</p>
                   </div>
                 )}
               </CardContent>

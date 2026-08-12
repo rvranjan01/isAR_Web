@@ -1,10 +1,10 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface ISubscription extends Document {
   clientEmail: string;
   clientName: string;
-  plan: 'monthly' | 'yearly';
-  status: 'active' | 'expired' | 'renewal_requested';
+  plan: "monthly" | "yearly";
+  status: "active" | "expired" | "renewal_requested";
   renewalDate: Date;
   startDate: Date;
   renewalRequestedAt?: Date;
@@ -24,12 +24,12 @@ const SubscriptionSchema = new Schema<ISubscription>(
     },
     plan: {
       type: String,
-      enum: ['monthly', 'yearly'],
+      enum: ["monthly", "yearly"],
       required: true,
     },
     status: {
       type: String,
-      enum: ['active', 'expired', 'renewal_requested'],
+      enum: ["active", "expired", "renewal_requested"],
       required: true,
     },
     renewalDate: {
@@ -51,11 +51,11 @@ const SubscriptionSchema = new Schema<ISubscription>(
 
         // Format dates as expected by the frontend
         if (ret.renewalDate instanceof Date) {
-          ret.renewalDate = ret.renewalDate.toISOString().split('T')[0];
+          ret.renewalDate = ret.renewalDate.toISOString().split("T")[0];
         }
 
         if (ret.startDate instanceof Date) {
-          ret.startDate = ret.startDate.toISOString().split('T')[0];
+          ret.startDate = ret.startDate.toISOString().split("T")[0];
         }
 
         if (ret.renewalRequestedAt instanceof Date) {
@@ -68,10 +68,10 @@ const SubscriptionSchema = new Schema<ISubscription>(
         return ret;
       },
     },
-  }
+  },
 );
 
 export const Subscription = mongoose.model<ISubscription>(
-  'Subscription',
-  SubscriptionSchema
+  "Subscription",
+  SubscriptionSchema,
 );

@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { useTheme } from '@/context/ThemeContext';
-import { NotificationBell } from './NotificationBell';
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
+import { NotificationBell } from "./NotificationBell";
 import {
   Sun,
   Moon,
@@ -14,10 +14,10 @@ import {
   UserCheck,
   Menu,
   X,
-  LayoutDashboard
-} from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { AnimatePresence, motion } from 'framer-motion';
+  LayoutDashboard,
+} from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { AnimatePresence, motion } from "framer-motion";
 
 // ─── Nav item shape ───────────────────────────────────────────────────────────
 interface NavItem {
@@ -30,15 +30,40 @@ interface NavItem {
 
 // ─── Role-scoped nav definitions ─────────────────────────────────────────────
 const CLIENT_NAV: NavItem[] = [
-  { to: '/dashboard', label: 'My Projects', icon: <LayoutDashboard className="w-4 h-4" /> }
+  {
+    to: "/dashboard",
+    label: "My Projects",
+    icon: <LayoutDashboard className="w-4 h-4" />,
+  },
 ];
 
 const ADMIN_NAV: NavItem[] = [
-  { to: '/admin', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
-  { to: '/admin/orders', label: 'Orders', icon: <Layers className="w-4 h-4" /> },
-  { to: '/admin/orders/new', label: 'Create Order', icon: <PlusCircle className="w-4 h-4" /> },
-  { to: '/admin/clients', label: 'Clients', icon: <UserCheck className="w-4 h-4" />, matchPrefix: true },
-  { to: '/admin/subscriptions', label: 'Subscriptions', icon: <Users className="w-4 h-4" /> },
+  {
+    to: "/admin",
+    label: "Overview",
+    icon: <LayoutDashboard className="w-4 h-4" />,
+  },
+  {
+    to: "/admin/orders",
+    label: "Orders",
+    icon: <Layers className="w-4 h-4" />,
+  },
+  {
+    to: "/admin/orders/new",
+    label: "Create Order",
+    icon: <PlusCircle className="w-4 h-4" />,
+  },
+  {
+    to: "/admin/clients",
+    label: "Clients",
+    icon: <UserCheck className="w-4 h-4" />,
+    matchPrefix: true,
+  },
+  {
+    to: "/admin/subscriptions",
+    label: "Subscriptions",
+    icon: <Users className="w-4 h-4" />,
+  },
 ];
 
 // ─── Shared active-link helper ────────────────────────────────────────────────
@@ -48,15 +73,18 @@ function useNavActive(item: NavItem, pathname: string): boolean {
 }
 
 // ─── Desktop nav link ─────────────────────────────────────────────────────────
-const DesktopNavLink: React.FC<{ item: NavItem; pathname: string }> = ({ item, pathname }) => {
+const DesktopNavLink: React.FC<{ item: NavItem; pathname: string }> = ({
+  item,
+  pathname,
+}) => {
   const active = useNavActive(item, pathname);
   return (
     <Link
       to={item.to}
       className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
         active
-          ? 'bg-[var(--surface-soft)] text-[#2D5BFF] font-semibold'
-          : 'text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--surface-soft)]'
+          ? "bg-[var(--surface-soft)] text-[#2D5BFF] font-semibold"
+          : "text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--surface-soft)]"
       }`}
     >
       {item.icon}
@@ -78,8 +106,8 @@ const MobileNavLink: React.FC<{
       onClick={onClick}
       className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
         active
-          ? 'bg-[#2D5BFF]/10 text-[#2D5BFF] font-semibold'
-          : 'text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--surface-soft)]'
+          ? "bg-[#2D5BFF]/10 text-[#2D5BFF] font-semibold"
+          : "text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--surface-soft)]"
       }`}
     >
       {item.icon}
@@ -95,7 +123,7 @@ export const Header: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === "admin";
   const navItems = isAuthenticated ? (isAdmin ? ADMIN_NAV : CLIENT_NAV) : [];
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -111,19 +139,21 @@ export const Header: React.FC = () => {
   useEffect(() => {
     if (!mobileOpen) return;
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         setMobileOpen(false);
         triggerRef.current?.focus();
       }
     };
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
   }, [mobileOpen]);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [mobileOpen]);
 
   const handleMobileClose = () => setMobileOpen(false);
@@ -131,7 +161,7 @@ export const Header: React.FC = () => {
   const handleLogout = () => {
     setMobileOpen(false);
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -143,18 +173,21 @@ export const Header: React.FC = () => {
           even with 5 admin links at 1280px.
         */}
         <div className="mx-auto flex h-16 w-full items-center px-4 sm:px-6 lg:px-8 gap-4">
-
           {/* ── Logo + role badge (shrink-0 so it never collapses) ── */}
           <div className="flex items-center gap-3 shrink-0">
             <a
-              href="https://demo-of-imstdio.netlify.app"
+              href="https://immversestudios.com/"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2.5 group cursor-pointer"
               title="Go to Immverse Studios Marketing Site"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2D5BFF] text-white shadow-glow group-hover:scale-105 transition-transform shrink-0">
-                <Box className="h-5 w-5" />
+              <div className="flex h-15 w-15 items-center justify-center rounded-xl text-white shadow-glow group-hover:scale-105 transition-transform shrink-0">
+                <img
+                  src="/immverse.png"
+                  alt="Immverse Studios"
+                  className="h-15 w-15 object-contain"
+                />
               </div>
               <div className="flex flex-col">
                 <span className="font-heading font-extrabold text-base tracking-tight text-[var(--ink)] leading-tight">
@@ -180,14 +213,20 @@ export const Header: React.FC = () => {
               className="hidden md:flex flex-1 items-center justify-center gap-0.5"
               aria-label="Main navigation"
             >
-              {navItems.map(item => (
-                <DesktopNavLink key={item.to} item={item} pathname={location.pathname} />
+              {navItems.map((item) => (
+                <DesktopNavLink
+                  key={item.to}
+                  item={item}
+                  pathname={location.pathname}
+                />
               ))}
             </nav>
           )}
 
           {/* Spacer on mobile so right-side controls stay right-aligned */}
-          {isAuthenticated && <div className="flex-1 md:hidden" aria-hidden="true" />}
+          {isAuthenticated && (
+            <div className="flex-1 md:hidden" aria-hidden="true" />
+          )}
 
           {/* ── Right side controls (shrink-0 so they never collapse) ── */}
           <div className="flex items-center gap-2 shrink-0 ml-auto">
@@ -195,13 +234,14 @@ export const Header: React.FC = () => {
             <button
               onClick={toggleTheme}
               className="p-2 rounded-xl text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--surface-soft)] transition-colors cursor-pointer"
-              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
             >
-              {theme === 'dark'
-                ? <Sun className="w-5 h-5 text-amber-400" />
-                : <Moon className="w-5 h-5 text-slate-700 dark:text-slate-300" />
-              }
+              {theme === "dark" ? (
+                <Sun className="w-5 h-5 text-amber-400" />
+              ) : (
+                <Moon className="w-5 h-5 text-slate-700 dark:text-slate-300" />
+              )}
             </button>
 
             {/* Notifications bell (desktop only — also visible in mobile menu) */}
@@ -216,13 +256,12 @@ export const Header: React.FC = () => {
               <div className="hidden md:flex items-center gap-2 border-l border-[var(--contrast)] pl-3">
                 <span
                   className="hidden lg:inline-block text-xs font-semibold text-[var(--ink-soft)] max-w-[96px] truncate cursor-default"
-                  title={user?.name || user?.email || ''}
+                  title={user?.name || user?.email || ""}
                 >
                   {/* Show a short role label for admin to avoid long name truncation */}
                   {isAdmin
-                    ? (user?.name?.split(' ')[0] ?? 'Admin')
-                    : (user?.name || user?.email)
-                  }
+                    ? (user?.name?.split(" ")[0] ?? "Admin")
+                    : user?.name || user?.email}
                 </span>
                 <Button
                   variant="ghost"
@@ -239,7 +278,9 @@ export const Header: React.FC = () => {
             {/* Login button (unauthenticated) */}
             {!isAuthenticated && (
               <Link to="/login">
-                <Button variant="primary" size="sm" >Login</Button>
+                <Button variant="primary" size="sm">
+                  Login
+                </Button>
               </Link>
             )}
 
@@ -247,16 +288,19 @@ export const Header: React.FC = () => {
             {isAuthenticated && (
               <button
                 ref={triggerRef}
-                onClick={() => setMobileOpen(prev => !prev)}
+                onClick={() => setMobileOpen((prev) => !prev)}
                 className="md:hidden p-2 rounded-xl text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--surface-soft)] transition-colors cursor-pointer"
-                aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                aria-label={
+                  mobileOpen ? "Close navigation menu" : "Open navigation menu"
+                }
                 aria-expanded={mobileOpen}
                 aria-controls="mobile-nav-panel"
               >
-                {mobileOpen
-                  ? <X className="w-5 h-5" />
-                  : <Menu className="w-5 h-5" />
-                }
+                {mobileOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
               </button>
             )}
           </div>
@@ -290,13 +334,13 @@ export const Header: React.FC = () => {
               initial={{ opacity: 0, y: -16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
               className="fixed top-16 left-0 right-0 z-35 md:hidden bg-[var(--surface)] border-b border-[var(--contrast)] shadow-xl"
               style={{ zIndex: 39 }}
             >
               <div className="mx-auto max-w-7xl px-4 py-4 space-y-1">
                 {/* Nav links */}
-                {navItems.map(item => (
+                {navItems.map((item) => (
                   <MobileNavLink
                     key={item.to}
                     item={item}
@@ -340,13 +384,23 @@ export const Header: React.FC = () => {
 
                 {/* Theme toggle row */}
                 <button
-                  onClick={() => { toggleTheme(); handleMobileClose(); }}
+                  onClick={() => {
+                    toggleTheme();
+                    handleMobileClose();
+                  }}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--surface-soft)] transition-colors"
                 >
-                  {theme === 'dark'
-                    ? <><Sun className="w-4 h-4 text-amber-400" /><span>Switch to Light Mode</span></>
-                    : <><Moon className="w-4 h-4" /><span>Switch to Dark Mode</span></>
-                  }
+                  {theme === "dark" ? (
+                    <>
+                      <Sun className="w-4 h-4 text-amber-400" />
+                      <span>Switch to Light Mode</span>
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="w-4 h-4" />
+                      <span>Switch to Dark Mode</span>
+                    </>
+                  )}
                 </button>
               </div>
             </motion.div>

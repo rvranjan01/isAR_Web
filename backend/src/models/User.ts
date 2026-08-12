@@ -1,8 +1,8 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface IUser extends Document {
   email: string;
-  role: 'client' | 'admin';
+  role: "client" | "admin";
   name?: string;
   companyName?: string;
   orderId?: string;
@@ -20,8 +20,8 @@ const UserSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ['client', 'admin'],
-      default: 'client',
+      enum: ["client", "admin"],
+      default: "client",
     },
     name: {
       type: String,
@@ -50,7 +50,7 @@ const UserSchema = new Schema<IUser>(
         return ret;
       },
     },
-  }
+  },
 );
 
-export const User = mongoose.model<IUser>('User', UserSchema);
+export const User = mongoose.model<IUser>("User", UserSchema);

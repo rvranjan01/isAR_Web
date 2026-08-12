@@ -1,13 +1,13 @@
-import { AuthResponse, User } from '@/types';
-import { fetchClient, isMockMode } from './api';
-import { INITIAL_USERS, INITIAL_PROJECTS } from './mocks/data';
+import { AuthResponse, User } from "@/types";
+import { fetchClient, isMockMode } from "./api";
+import { INITIAL_USERS, INITIAL_PROJECTS } from "./mocks/data";
 
 // ── Custom error for locked accounts ──────────────────────────────────────────
 export class AccountLockedError extends Error {
   adminEmail: string;
   constructor(adminEmail: string) {
-    super('Account is locked');
-    this.name = 'AccountLockedError';
+    super("Account is locked");
+    this.name = "AccountLockedError";
     this.adminEmail = adminEmail;
   }
 }
@@ -16,8 +16,8 @@ export class AccountLockedError extends Error {
 export class InvalidOrderIdError extends Error {
   attemptsLeft?: number;
   constructor(attemptsLeft?: number) {
-    super('Order ID not found for this email address.');
-    this.name = 'InvalidOrderIdError';
+    super("Order ID not found for this email address.");
+    this.name = "InvalidOrderIdError";
     this.attemptsLeft = attemptsLeft;
   }
 }
@@ -28,7 +28,7 @@ let mockUsers = [...INITIAL_USERS];
 // In-memory failed attempts tracker (mock mode only)  { email -> count }
 const mockFailedAttempts: Record<string, number> = {};
 const MOCK_MAX_ATTEMPTS = 3;
-const MOCK_ADMIN_EMAIL = 'admin@immversestudios.com';
+const MOCK_ADMIN_EMAIL = "admin@immversestudios.com";
 
 export const authService = {
   /**
@@ -37,23 +37,26 @@ export const authService = {
    */
   async login(email: string, orderId: string): Promise<AuthResponse> {
     if (isMockMode()) {
-      await new Promise(res => setTimeout(res, 350));
+      await new Promise((res) => setTimeout(res, 350));
 
       const normalizedEmail = email.trim().toLowerCase();
       const normalizedOrderId = orderId.trim().toUpperCase();
 
       // Admin shortcut
-      if (normalizedEmail.includes('admin') || normalizedOrderId.startsWith('ADMIN')) {
+      if (
+        normalizedEmail.includes("admin") ||
+        normalizedOrderId.startsWith("ADMIN")
+      ) {
         const adminUser: User = {
-          id: 'usr-admin-1',
+          id: "usr-admin-1",
           email: normalizedEmail,
-          role: 'admin',
-          name: 'Immverse Studio Operations',
-          companyName: 'Immverse Studios'
+          role: "admin",
+          name: "Immverse Studio Operations",
+          companyName: "Immverse Studios",
         };
         return {
           user: adminUser,
-          token: `mock-jwt-admin-${Date.now()}`
+          token: `mock-jwt-admin-${Date.now()}`,
         };
       }
 
@@ -64,15 +67,15 @@ export const authService = {
       }
 
       const seededUserByEmail = mockUsers.find(
-        u => u.email.toLowerCase() === normalizedEmail && u.role === 'client'
+        (u) => u.email.toLowerCase() === normalizedEmail && u.role === "client",
       );
 
       if (seededUserByEmail) {
         const allProjects = [...INITIAL_PROJECTS];
         const orderBelongsToEmail = allProjects.some(
-          p =>
+          (p) =>
             p.clientEmail.toLowerCase() === normalizedEmail &&
-            p.orderId.toUpperCase() === normalizedOrderId
+            p.orderId.toUpperCase() === normalizedOrderId,
         );
         const primaryOrderMatch =
           seededUserByEmail.orderId?.toUpperCase() === normalizedOrderId;
@@ -82,12 +85,13 @@ export const authService = {
           delete mockFailedAttempts[normalizedEmail];
           return {
             user: { ...seededUserByEmail, orderId: normalizedOrderId },
-            token: `mock-jwt-client-${seededUserByEmail.id}-${Date.now()}`
+            token: `mock-jwt-client-${seededUserByEmail.id}-${Date.now()}`,
           };
         }
 
         // Wrong order ID — increment
-        mockFailedAttempts[normalizedEmail] = (mockFailedAttempts[normalizedEmail] ?? 0) + 1;
+        mockFailedAttempts[normalizedEmail] =
+          (mockFailedAttempts[normalizedEmail] ?? 0) + 1;
         const newAttempts = mockFailedAttempts[normalizedEmail];
 
         if (newAttempts >= MOCK_MAX_ATTEMPTS) {
@@ -101,27 +105,27 @@ export const authService = {
       const dynamicUser: User = {
         id: `usr-client-${Date.now()}`,
         email: normalizedEmail,
-        role: 'client',
-        name: normalizedEmail.split('@')[0],
-        companyName: 'Client Enterprise',
-        orderId: normalizedOrderId
+        role: "client",
+        name: normalizedEmail.split("@")[0],
+        companyName: "Client Enterprise",
+        orderId: normalizedOrderId,
       };
       mockUsers.push(dynamicUser);
 
       return {
         user: dynamicUser,
-        token: `mock-jwt-client-${dynamicUser.id}-${Date.now()}`
+        token: `mock-jwt-client-${dynamicUser.id}-${Date.now()}`,
       };
     }
 
     // ── Real API mode ─────────────────────────────────────────────────────────
     const response = await fetch(
-      (import.meta.env.VITE_API_BASE_URL ?? '') + '/api/auth/login',
+      (import.meta.env.VITE_API_BASE_URL ?? "") + "/api/auth/login",
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, orderId })
-      }
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, orderId }),
+      },
     );
 
     const data = await response.json();
@@ -138,7 +142,7 @@ export const authService = {
   },
 
   async getCurrentUser(): Promise<User | null> {
-    const storedUser = localStorage.getItem('immverse_user');
+    const storedUser = localStorage.getItem("immverse_user");
     if (storedUser) {
       try {
         return JSON.parse(storedUser);
@@ -154,50 +158,55 @@ export const authService = {
    */
   async unlockClient(email: string): Promise<void> {
     if (isMockMode()) {
-      await new Promise(res => setTimeout(res, 300));
+      await new Promise((res) => setTimeout(res, 300));
       delete mockFailedAttempts[email.trim().toLowerCase()];
       return;
     }
 
-    const token = localStorage.getItem('immverse_auth_token');
+    const token = localStorage.getItem("immverse_auth_token");
     const response = await fetch(
-      (import.meta.env.VITE_API_BASE_URL ?? '') + '/api/auth/unlock',
+      (import.meta.env.VITE_API_BASE_URL ?? "") + "/api/auth/unlock",
       {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ email })
-      }
+        body: JSON.stringify({ email }),
+      },
     );
 
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
-      throw new Error(data.message ?? 'Failed to unlock account');
+      throw new Error(data.message ?? "Failed to unlock account");
     }
   },
 
   /**
    * Admin: get lock status of a client.
    */
-  async getLockStatus(email: string): Promise<{ isLocked: boolean; loginAttempts: number }> {
+  async getLockStatus(
+    email: string,
+  ): Promise<{ isLocked: boolean; loginAttempts: number }> {
     if (isMockMode()) {
-      await new Promise(res => setTimeout(res, 200));
+      await new Promise((res) => setTimeout(res, 200));
       const attempts = mockFailedAttempts[email.trim().toLowerCase()] ?? 0;
-      return { isLocked: attempts >= MOCK_MAX_ATTEMPTS, loginAttempts: attempts };
+      return {
+        isLocked: attempts >= MOCK_MAX_ATTEMPTS,
+        loginAttempts: attempts,
+      };
     }
 
-    const token = localStorage.getItem('immverse_auth_token');
+    const token = localStorage.getItem("immverse_auth_token");
     const response = await fetch(
-      (import.meta.env.VITE_API_BASE_URL ?? '') +
+      (import.meta.env.VITE_API_BASE_URL ?? "") +
         `/api/auth/lock-status/${encodeURIComponent(email)}`,
       {
-        headers: { Authorization: `Bearer ${token}` }
-      }
+        headers: { Authorization: `Bearer ${token}` },
+      },
     );
 
-    if (!response.ok) throw new Error('Failed to fetch lock status');
+    if (!response.ok) throw new Error("Failed to fetch lock status");
     return response.json();
-  }
+  },
 };

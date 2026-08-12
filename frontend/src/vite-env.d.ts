@@ -9,17 +9,17 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
-declare module '*.css';
-declare module '@fontsource/*';
+declare module "*.css";
+declare module "@fontsource/*";
 
 declare namespace React.JSX {
   interface IntrinsicElements {
-    'model-viewer': any;
+    "model-viewer": any;
   }
 }
 
 declare namespace JSX {
   interface IntrinsicElements {
-    'model-viewer': any;
+    "model-viewer": any;
   }
 }

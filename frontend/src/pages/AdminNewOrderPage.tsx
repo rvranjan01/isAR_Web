@@ -1,15 +1,21 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { newOrderSchema, NewOrderFormData } from '@/lib/schema';
-import { projectService } from '@/services/projectService';
-import { useNotifications } from '@/context/NotificationContext';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input, Select, Textarea } from '@/components/ui/Input';
-import { ArrowLeft, UploadCloud, Sparkles, Check } from 'lucide-react';
-import { PageTransition } from '@/components/layout/PageTransition';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { newOrderSchema, NewOrderFormData } from "@/lib/schema";
+import { projectService } from "@/services/projectService";
+import { useNotifications } from "@/context/NotificationContext";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input, Select, Textarea } from "@/components/ui/Input";
+import { ArrowLeft, UploadCloud, Sparkles, Check } from "lucide-react";
+import { PageTransition } from "@/components/layout/PageTransition";
 
 export const AdminNewOrderPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,17 +27,17 @@ export const AdminNewOrderPage: React.FC = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<NewOrderFormData>({
     resolver: zodResolver(newOrderSchema),
     defaultValues: {
-      clientEmail: '',
-      clientName: '',
-      productName: '',
-      productCategory: 'AuRa AR Menu',
-      description: '',
-      notes: ''
-    }
+      clientEmail: "",
+      clientName: "",
+      productName: "",
+      productCategory: "AuRa AR Menu",
+      description: "",
+      notes: "",
+    },
   });
 
   const onSubmit = async (data: NewOrderFormData) => {
@@ -43,22 +49,23 @@ export const AdminNewOrderPage: React.FC = () => {
         productName: data.productName,
         productCategory: data.productCategory,
         description: data.description,
-        notes: data.notes
+        notes: data.notes,
       });
 
       addToast({
-        type: 'success',
-        title: 'Order Created Successfully',
-        description: `Order ID ${newProject.orderId} created for ${newProject.clientEmail}.`
+        type: "success",
+        title: "Order Created Successfully",
+        description: `Order ID ${newProject.orderId} created for ${newProject.clientEmail}.`,
       });
 
       navigate(`/admin/orders/${newProject.id}`);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to create order.';
+      const msg =
+        err instanceof Error ? err.message : "Failed to create order.";
       addToast({
-        type: 'error',
-        title: 'Order Creation Error',
-        description: msg
+        type: "error",
+        title: "Order Creation Error",
+        description: msg,
       });
     } finally {
       setIsSubmitting(false);
@@ -68,9 +75,9 @@ export const AdminNewOrderPage: React.FC = () => {
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
+    if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
-    } else if (e.type === 'dragleave') {
+    } else if (e.type === "dragleave") {
       setDragActive(false);
     }
   };
@@ -95,7 +102,11 @@ export const AdminNewOrderPage: React.FC = () => {
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
         <div className="flex items-center gap-4">
           <Link to="/admin/orders">
-            <Button variant="ghost" size="sm" leftIcon={<ArrowLeft className="w-4 h-4" />}>
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<ArrowLeft className="w-4 h-4" />}
+            >
               Back to Orders
             </Button>
           </Link>
@@ -104,11 +115,13 @@ export const AdminNewOrderPage: React.FC = () => {
         <Card glass glow>
           <CardHeader>
             <div className="flex items-center gap-2 text-xs font-mono font-semibold uppercase text-purple-500 mb-1">
-              <Sparkles className="w-4 h-4 text-[#2D5BFF]" /> Admin Order Generation
+              <Sparkles className="w-4 h-4 text-[#2D5BFF]" /> Admin Order
+              Generation
             </div>
             <CardTitle className="text-2xl">Create New AR Order</CardTitle>
             <CardDescription>
-              Register client scanning data, generate an Order ID, and initiate the 3D modeling pipeline.
+              Register client scanning data, generate an Order ID, and initiate
+              the 3D modeling pipeline.
             </CardDescription>
           </CardHeader>
 
@@ -119,14 +132,14 @@ export const AdminNewOrderPage: React.FC = () => {
                   label="Client Email Address"
                   placeholder="client@restaurant.com"
                   error={errors.clientEmail?.message}
-                  {...register('clientEmail')}
+                  {...register("clientEmail")}
                 />
 
                 <Input
                   label="Client / Company Name"
                   placeholder="Bistro Lumière"
                   error={errors.clientName?.message}
-                  {...register('clientName')}
+                  {...register("clientName")}
                 />
               </div>
 
@@ -135,17 +148,23 @@ export const AdminNewOrderPage: React.FC = () => {
                   label="Product / Item Name"
                   placeholder="Signature Wagyu Steak"
                   error={errors.productName?.message}
-                  {...register('productName')}
+                  {...register("productName")}
                 />
 
                 <Select
                   label="Product Line / Category"
                   options={[
-                    { value: 'AuRa AR Menu', label: 'AuRa AR Menu (Restaurant / Hospitality)' },
-                    { value: 'Teleport 3D Twin', label: 'Teleport 3D Twin (Real Estate / Spatial)' }
+                    {
+                      value: "AuRa AR Menu",
+                      label: "AuRa AR Menu (Restaurant / Hospitality)",
+                    },
+                    {
+                      value: "Teleport 3D Twin",
+                      label: "Teleport 3D Twin (Real Estate / Spatial)",
+                    },
                   ]}
                   error={errors.productCategory?.message}
-                  {...register('productCategory')}
+                  {...register("productCategory")}
                 />
               </div>
 
@@ -153,7 +172,7 @@ export const AdminNewOrderPage: React.FC = () => {
                 label="Product & Modeling Description"
                 placeholder="Detail materials, dimensions, texture requirements, and lighting notes..."
                 error={errors.description?.message}
-                {...register('description')}
+                {...register("description")}
               />
 
               {/* File Upload Dropzone for Raw Scan Data */}
@@ -169,10 +188,10 @@ export const AdminNewOrderPage: React.FC = () => {
                   onDrop={handleDrop}
                   className={`relative flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed transition-all text-center ${
                     dragActive
-                      ? 'border-[#2D5BFF] bg-[#2D5BFF]/10'
+                      ? "border-[#2D5BFF] bg-[#2D5BFF]/10"
                       : uploadedFileName
-                      ? 'border-emerald-500/50 bg-emerald-500/5'
-                      : 'border-[var(--contrast)] bg-[var(--surface-soft)] hover:border-[#2D5BFF]/50'
+                        ? "border-emerald-500/50 bg-emerald-500/5"
+                        : "border-[var(--contrast)] bg-[var(--surface-soft)] hover:border-[#2D5BFF]/50"
                   }`}
                 >
                   <input
@@ -194,7 +213,8 @@ export const AdminNewOrderPage: React.FC = () => {
                         Drag and drop raw scan ZIP or click to browse
                       </p>
                       <p className="text-xs text-[var(--ink-soft)] mt-1">
-                        Supports photogrammetry ZIPs, .OBJ, .PLY, or raw photo sets (max 500MB)
+                        Supports photogrammetry ZIPs, .OBJ, .PLY, or raw photo
+                        sets (max 500MB)
                       </p>
                     </>
                   )}
@@ -204,7 +224,7 @@ export const AdminNewOrderPage: React.FC = () => {
               <Textarea
                 label="Internal Admin Notes (Optional)"
                 placeholder="Internal modeling instructions or priority flags..."
-                {...register('notes')}
+                {...register("notes")}
               />
 
               <div className="flex justify-end gap-3 pt-4 border-t border-[var(--contrast)]">
@@ -213,7 +233,11 @@ export const AdminNewOrderPage: React.FC = () => {
                     Cancel
                   </Button>
                 </Link>
-                <Button type="submit" variant="primary" isLoading={isSubmitting}>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  isLoading={isSubmitting}
+                >
                   Generate Order & Start Pipeline
                 </Button>
               </div>

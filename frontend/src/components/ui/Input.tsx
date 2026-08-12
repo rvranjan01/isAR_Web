@@ -1,5 +1,5 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { cn } from "@/lib/utils";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -10,13 +10,20 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, helperText, leftIcon, rightIcon, id, ...props }, ref) => {
-    const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+  (
+    { className, label, error, helperText, leftIcon, rightIcon, id, ...props },
+    ref,
+  ) => {
+    const inputId =
+      id || (label ? label.toLowerCase().replace(/\s+/g, "-") : undefined);
 
     return (
       <div className="w-full space-y-1.5">
         {label && (
-          <label htmlFor={inputId} className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-soft)]">
+          <label
+            htmlFor={inputId}
+            className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-soft)]"
+          >
             {label}
           </label>
         )}
@@ -30,11 +37,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             ref={ref}
             className={cn(
-              'w-full px-4 py-2.5 bg-[var(--surface-soft)] text-[var(--ink)] border border-[var(--contrast)] rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#2D5BFF] focus:border-transparent placeholder:text-[var(--ink-soft)]/60',
-              leftIcon && 'pl-10',
-              rightIcon && 'pr-10',
-              error && 'border-red-500 focus:ring-red-500',
-              className
+              "w-full px-4 py-2.5 bg-[var(--surface-soft)] text-[var(--ink)] border border-[var(--contrast)] rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#2D5BFF] focus:border-transparent placeholder:text-[var(--ink-soft)]/60",
+              leftIcon && "pl-10",
+              rightIcon && "pr-10",
+              error && "border-red-500 focus:ring-red-500",
+              className,
             )}
             {...props}
           />
@@ -45,12 +52,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
-        {helperText && !error && <p className="text-xs text-[var(--ink-soft)]">{helperText}</p>}
+        {helperText && !error && (
+          <p className="text-xs text-[var(--ink-soft)]">{helperText}</p>
+        )}
       </div>
     );
-  }
+  },
 );
-Input.displayName = 'Input';
+Input.displayName = "Input";
 
 export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
@@ -60,12 +69,16 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, label, error, options, id, ...props }, ref) => {
-    const selectId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+    const selectId =
+      id || (label ? label.toLowerCase().replace(/\s+/g, "-") : undefined);
 
     return (
       <div className="w-full space-y-1.5">
         {label && (
-          <label htmlFor={selectId} className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-soft)]">
+          <label
+            htmlFor={selectId}
+            className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-soft)]"
+          >
             {label}
           </label>
         )}
@@ -73,14 +86,18 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           id={selectId}
           ref={ref}
           className={cn(
-            'w-full px-4 py-2.5 bg-[var(--surface-soft)] text-[var(--ink)] border border-[var(--contrast)] rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#2D5BFF] focus:border-transparent cursor-pointer',
-            error && 'border-red-500 focus:ring-red-500',
-            className
+            "w-full px-4 py-2.5 bg-[var(--surface-soft)] text-[var(--ink)] border border-[var(--contrast)] rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#2D5BFF] focus:border-transparent cursor-pointer",
+            error && "border-red-500 focus:ring-red-500",
+            className,
           )}
           {...props}
         >
-          {options.map(opt => (
-            <option key={opt.value} value={opt.value} className="bg-[var(--surface)] text-[var(--ink)]">
+          {options.map((opt) => (
+            <option
+              key={opt.value}
+              value={opt.value}
+              className="bg-[var(--surface)] text-[var(--ink)]"
+            >
               {opt.label}
             </option>
           ))}
@@ -88,9 +105,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
       </div>
     );
-  }
+  },
 );
-Select.displayName = 'Select';
+Select.displayName = "Select";
 
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -99,12 +116,16 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, label, error, id, ...props }, ref) => {
-    const textareaId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+    const textareaId =
+      id || (label ? label.toLowerCase().replace(/\s+/g, "-") : undefined);
 
     return (
       <div className="w-full space-y-1.5">
         {label && (
-          <label htmlFor={textareaId} className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-soft)]">
+          <label
+            htmlFor={textareaId}
+            className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-soft)]"
+          >
             {label}
           </label>
         )}
@@ -113,15 +134,15 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           ref={ref}
           rows={4}
           className={cn(
-            'w-full px-4 py-2.5 bg-[var(--surface-soft)] text-[var(--ink)] border border-[var(--contrast)] rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#2D5BFF] focus:border-transparent placeholder:text-[var(--ink-soft)]/60',
-            error && 'border-red-500 focus:ring-red-500',
-            className
+            "w-full px-4 py-2.5 bg-[var(--surface-soft)] text-[var(--ink)] border border-[var(--contrast)] rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#2D5BFF] focus:border-transparent placeholder:text-[var(--ink-soft)]/60",
+            error && "border-red-500 focus:ring-red-500",
+            className,
           )}
           {...props}
         />
         {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
       </div>
     );
-  }
+  },
 );
-Textarea.displayName = 'Textarea';
+Textarea.displayName = "Textarea";

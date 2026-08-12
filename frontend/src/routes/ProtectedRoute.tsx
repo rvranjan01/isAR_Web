@@ -1,15 +1,18 @@
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { Role } from '@/types';
-import { Skeleton } from '@/components/ui/Skeleton';
+import React from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { Role } from "@/types";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedRole?: Role;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRole }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  allowedRole,
+}) => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 

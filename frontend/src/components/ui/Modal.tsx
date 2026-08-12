@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React, { useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ModalProps {
   isOpen: boolean;
@@ -9,7 +9,7 @@ interface ModalProps {
   title?: string;
   description?: string;
   children: React.ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
+  maxWidth?: "sm" | "md" | "lg" | "xl";
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -18,27 +18,27 @@ export const Modal: React.FC<ModalProps> = ({
   title,
   description,
   children,
-  maxWidth = 'md'
+  maxWidth = "md",
 }) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleKeyDown);
     }
     return () => {
-      document.body.style.overflow = 'unset';
-      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = "unset";
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose]);
 
   const maxWidthClasses = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl'
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-lg",
+    xl: "max-w-xl",
   };
 
   return (
@@ -57,16 +57,24 @@ export const Modal: React.FC<ModalProps> = ({
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ type: 'spring', duration: 0.25 }}
+            transition={{ type: "spring", duration: 0.25 }}
             className={cn(
-              'relative z-10 w-full rounded-2xl border border-[var(--contrast)] bg-[var(--surface)] p-6 shadow-glow-lg text-[var(--ink)]',
-              maxWidthClasses[maxWidth]
+              "relative z-10 w-full rounded-2xl border border-[var(--contrast)] bg-[var(--surface)] p-6 shadow-glow-lg text-[var(--ink)]",
+              maxWidthClasses[maxWidth],
             )}
           >
             <div className="flex items-start justify-between pb-3">
               <div>
-                {title && <h3 className="text-lg font-semibold font-heading">{title}</h3>}
-                {description && <p className="text-sm text-[var(--ink-soft)] mt-1">{description}</p>}
+                {title && (
+                  <h3 className="text-lg font-semibold font-heading">
+                    {title}
+                  </h3>
+                )}
+                {description && (
+                  <p className="text-sm text-[var(--ink-soft)] mt-1">
+                    {description}
+                  </p>
+                )}
               </div>
               <button
                 onClick={onClose}

@@ -129,47 +129,6 @@ export const createProject = async (
   }
 };
 
-// export const updateProjectStatus = async (
-//   req: Request,
-//   res: Response,
-// ): Promise<void> => {
-//   try {
-//     const { status } = req.body;
-//     const project = await Project.findById(req.params.id);
-
-//     if (!project) {
-//       res.status(404).json({ message: "Project not found" });
-//       return;
-//     }
-
-//     project.status = status;
-
-//     if (status === "Completed" && !project.arViewerUrl) {
-//       project.arViewerUrl = `https://ar.immversestudios.com/view/${project._id}`;
-//       if (!project.arModelUrl) {
-//         project.arModelUrl = `https://assets.immversestudios.com/models/${project._id}.glb`;
-//       }
-//     }
-
-//     await project.save();
-
-//     // Send email to client on status update
-//     const emailSubject = `Order Status Updated: ${project.orderId}`;
-//     const emailHtml = `
-//       <h3>Hello ${project.clientName},</h3>
-//       <p>Your order <strong>${project.orderId}</strong> (${project.productName}) has been updated.</p>
-//       <p><strong>New Status:</strong> ${project.status}</p>
-//       <p>Login to the portal to view the details.</p>
-//       <p>Thank you!</p>
-//     `;
-//     await sendEmail(project.clientEmail, emailSubject, emailHtml);
-
-//     res.json(project);
-//   } catch (error) {
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// };
-
 
 export const updateProjectStatus = async (
   req: Request,
@@ -265,52 +224,6 @@ export const uploadARModel = async (
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-// export const handleQRCode = async (
-//   req: Request,
-//   res: Response,
-// ): Promise<void> => {
-//   try {
-//     const project = await Project.findById(req.params.id);
-
-//     if (!project) {
-//       res.status(404).json({ message: "Project not found" });
-//       return;
-//     }
-
-//     const file = req.file;
-//     const viewerUrl = `https://ar.immversestudios.com/view/${project._id}`;
-
-//     // Always set viewerUrl if generating/uploading QR code
-//     project.arViewerUrl = viewerUrl;
-
-//     if (file) {
-//       // User uploaded a custom QR code
-//       project.qrCodeUrl = await uploadFile(
-//         file.buffer,
-//         file.originalname,
-//         "qrcodes",
-//         "image",
-//       );
-//     } else {
-//       // Generate QR Code
-//       const qrBuffer = await QRCode.toBuffer(viewerUrl, { type: "png" });
-//       project.qrCodeUrl = await uploadFile(
-//         qrBuffer,
-//         `qr-${project._id}.png`,
-//         "qrcodes",
-//         "image",
-//       );
-//     }
-
-//     await project.save();
-//     res.json(project);
-//   } catch (error) {
-//     console.error("QR Code Error:", error);
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// };
-
 
 
 export const handleQRCode = async (

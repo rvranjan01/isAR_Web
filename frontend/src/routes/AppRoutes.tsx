@@ -1,19 +1,19 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { LoginPage } from '@/pages/LoginPage';
-import { ClientDashboardPage } from '@/pages/ClientDashboardPage';
-import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
-import { AdminDashboardPage } from '@/pages/AdminDashboardPage';
-import { AdminOrdersPage } from '@/pages/AdminOrdersPage';
-import { AdminNewOrderPage } from '@/pages/AdminNewOrderPage';
-import { AdminOrderDetailPage } from '@/pages/AdminOrderDetailPage';
-import { AdminSubscriptionsPage } from '@/pages/AdminSubscriptionsPage';
-import { AdminClientsPage } from '@/pages/AdminClientsPage';
-import { AdminClientDetailPage } from '@/pages/AdminClientDetailPage';
-import { UnauthorizedPage } from '@/pages/UnauthorizedPage';
-import { ARViewerPage } from '@/pages/ARViewerPage';
-import { ProtectedRoute } from './ProtectedRoute';
-import { useAuth } from '@/context/AuthContext';
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { LoginPage } from "@/pages/LoginPage";
+import { ClientDashboardPage } from "@/pages/ClientDashboardPage";
+import { ProjectDetailPage } from "@/pages/ProjectDetailPage";
+import { AdminDashboardPage } from "@/pages/AdminDashboardPage";
+import { AdminOrdersPage } from "@/pages/AdminOrdersPage";
+import { AdminNewOrderPage } from "@/pages/AdminNewOrderPage";
+import { AdminOrderDetailPage } from "@/pages/AdminOrderDetailPage";
+import { AdminSubscriptionsPage } from "@/pages/AdminSubscriptionsPage";
+import { AdminClientsPage } from "@/pages/AdminClientsPage";
+import { AdminClientDetailPage } from "@/pages/AdminClientDetailPage";
+import { UnauthorizedPage } from "@/pages/UnauthorizedPage";
+import { ARViewerPage } from "@/pages/ARViewerPage";
+import { ProtectedRoute } from "./ProtectedRoute";
+import { useAuth } from "@/context/AuthContext";
 
 export const AppRoutes: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -26,7 +26,10 @@ export const AppRoutes: React.FC = () => {
         path="/login"
         element={
           isAuthenticated ? (
-            <Navigate to={user?.role === 'admin' ? '/admin' : '/dashboard'} replace />
+            <Navigate
+              to={user?.role === "admin" ? "/admin" : "/dashboard"}
+              replace
+            />
           ) : (
             <LoginPage />
           )
@@ -119,10 +122,10 @@ export const AppRoutes: React.FC = () => {
           <Navigate
             to={
               !isAuthenticated
-                ? '/login'
-                : user?.role === 'admin'
-                ? '/admin'
-                : '/dashboard'
+                ? "/login"
+                : user?.role === "admin"
+                  ? "/admin"
+                  : "/dashboard"
             }
             replace
           />

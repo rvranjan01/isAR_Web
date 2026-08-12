@@ -32,7 +32,9 @@ export const ARViewerPage: React.FC = () => {
       <div className="flex h-screen w-full items-center justify-center bg-[var(--paper)]">
         <div className="flex flex-col items-center space-y-4">
           <Skeleton className="h-64 w-64 rounded-xl" />
-          <p className="text-sm font-medium text-[var(--ink-soft)] animate-pulse">Loading 3D AR Experience...</p>
+          <p className="text-sm font-medium text-[var(--ink-soft)] animate-pulse">
+            Loading 3D AR Experience...
+          </p>
         </div>
       </div>
     );
@@ -44,9 +46,12 @@ export const ARViewerPage: React.FC = () => {
         <div className="p-6 rounded-full bg-[var(--surface-soft)] text-[#2D5BFF] border border-[var(--contrast)]">
           <Box className="w-12 h-12 opacity-60" />
         </div>
-        <h2 className="text-xl font-bold font-heading text-[var(--ink)]">3D Model Not Available</h2>
+        <h2 className="text-xl font-bold font-heading text-[var(--ink)]">
+          3D Model Not Available
+        </h2>
         <p className="text-sm text-[var(--ink-soft)] max-w-md">
-          The AR asset for this order is currently being processed or does not exist. Please check back later.
+          The AR asset for this order is currently being processed or does not
+          exist. Please check back later.
         </p>
       </div>
     );
@@ -82,10 +87,14 @@ export const ARViewerPage: React.FC = () => {
             shadow-intensity="1"
             environment-image="neutral"
             exposure="1"
-            style={{ width: "100%", height: "100%", backgroundColor: "#1A1A1A" }}
+            style={{
+              width: "100%",
+              height: "100%",
+              backgroundColor: "#1A1A1A",
+            }}
           ></model-viewer>
         </div>
-        
+
         {/* Instructions Overlay */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-xs text-white/80 whitespace-nowrap shadow-xl pointer-events-none">
           Drag to rotate • Pinch to zoom • Tap AR icon to place

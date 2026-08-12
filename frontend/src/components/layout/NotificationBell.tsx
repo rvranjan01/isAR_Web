@@ -1,22 +1,26 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Bell, CheckCheck, ExternalLink } from 'lucide-react';
-import { useNotifications } from '@/context/NotificationContext';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from "react";
+import { Bell, CheckCheck, ExternalLink } from "lucide-react";
+import { useNotifications } from "@/context/NotificationContext";
+import { useNavigate } from "react-router-dom";
 
 export const NotificationBell: React.FC = () => {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } =
+    useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleNotificationClick = (id: string, link?: string) => {
@@ -45,7 +49,9 @@ export const NotificationBell: React.FC = () => {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 sm:w-96 z-50 rounded-2xl border border-[var(--contrast)] bg-[var(--surface)] p-4 shadow-glow-lg text-[var(--ink)]">
           <div className="flex items-center justify-between pb-3 border-b border-[var(--contrast)]">
-            <h4 className="font-semibold text-sm font-heading">Notifications</h4>
+            <h4 className="font-semibold text-sm font-heading">
+              Notifications
+            </h4>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
@@ -59,21 +65,29 @@ export const NotificationBell: React.FC = () => {
 
           <div className="mt-2 max-h-80 overflow-y-auto space-y-2 divide-y divide-[var(--contrast)]">
             {notifications.length === 0 ? (
-              <p className="text-center py-6 text-xs text-[var(--ink-soft)]">No notifications available</p>
+              <p className="text-center py-6 text-xs text-[var(--ink-soft)]">
+                No notifications available
+              </p>
             ) : (
-              notifications.map(n => (
+              notifications.map((n) => (
                 <div
                   key={n.id}
                   onClick={() => handleNotificationClick(n.id, n.link)}
                   className={`pt-2.5 first:pt-0 pb-1 cursor-pointer transition-colors hover:bg-[var(--surface-soft)] p-2 rounded-xl ${
-                    !n.read ? 'bg-[#2D5BFF]/5 font-medium' : 'opacity-80'
+                    !n.read ? "bg-[#2D5BFF]/5 font-medium" : "opacity-80"
                   }`}
                 >
                   <div className="flex items-start justify-between">
-                    <h5 className="text-xs font-semibold text-[var(--ink)]">{n.title}</h5>
-                    {!n.read && <span className="w-2 h-2 rounded-full bg-[#2D5BFF]" />}
+                    <h5 className="text-xs font-semibold text-[var(--ink)]">
+                      {n.title}
+                    </h5>
+                    {!n.read && (
+                      <span className="w-2 h-2 rounded-full bg-[#2D5BFF]" />
+                    )}
                   </div>
-                  <p className="text-xs text-[var(--ink-soft)] mt-1">{n.message}</p>
+                  <p className="text-xs text-[var(--ink-soft)] mt-1">
+                    {n.message}
+                  </p>
                   {n.link && (
                     <span className="inline-flex items-center gap-1 text-[10px] text-[#2D5BFF] mt-1 font-medium">
                       View details <ExternalLink className="w-2.5 h-2.5" />
