@@ -7,6 +7,7 @@ import projectRoutes from "./routes/projectRoutes";
 import subscriptionRoutes from "./routes/subscriptionRoutes";
 import notificationRoutes from "./routes/notificationRoutes";
 import { User } from "./models/User";
+import { verifySMTP } from "./services/emailService";
 
 // Legacy local-storage imports — kept for reference only.
 // Local upload directories are no longer required in production
@@ -115,6 +116,8 @@ mongoose
       console.error("Error seeding admin user:", seedError);
     }
 
+    // Verify SMTP configuration
+    await verifySMTP();
     // Start server
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
