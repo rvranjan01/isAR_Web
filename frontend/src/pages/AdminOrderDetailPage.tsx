@@ -38,6 +38,7 @@ export const AdminOrderDetailPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isUploadingModel, setIsUploadingModel] = useState(false);
+  const [isHandlingQRCode, setIsHandlingQRCode] = useState(false);
   const [selectedStatus, setSelectedStatus] =
     useState<ProjectStatus>("Uploaded");
   const [modelFileUrl, setModelFileUrl] = useState("");
@@ -99,15 +100,13 @@ export const AdminOrderDetailPage: React.FC = () => {
       const updated = await projectService.uploadARModel(
         project.id,
         modelFileUrl || undefined,
-        glbFile,
-        qrCodeFile,
+        glbFile
       );
       setProject(updated);
-      setSelectedStatus("Completed");
       addToast({
         type: "success",
-        title: "3D AR Assets Uploaded",
-        description: `Assets linked! Order automatically marked Completed for ${project.orderId}.`,
+        title: "3D AR Model Uploaded",
+        description: `Model linked successfully.`,
       });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Model upload failed";
@@ -118,6 +117,31 @@ export const AdminOrderDetailPage: React.FC = () => {
       });
     } finally {
       setIsUploadingModel(false);
+    }
+  };
+
+  const handleQRCodeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!project) return;
+    setIsHandlingQRCode(true);
+    try {
+      const updated = await projectService.handleQRCode(project.id, qrCodeFile);
+      setProject(updated);
+      addToast({
+        type: "success",
+        title: "QR Code Processed",
+        description: qrCodeFile ? "Custom QR Code uploaded." : "Auto QR Code generated.",
+      });
+      setQrCodeFile(null); // Reset input
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "QR Code processing failed";
+      addToast({
+        type: "error",
+        title: "Error",
+        description: msg,
+      });
+    } finally {
+      setIsHandlingQRCode(false);
     }
   };
 
@@ -225,16 +249,14 @@ export const AdminOrderDetailPage: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* 3D Asset & QR Code Upload UI */}
+            {/* 3D Asset Upload UI */}
             <Card glass>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Upload className="w-5 h-5 text-[#2D5BFF]" /> Upload 3D Model
-                  (.GLB) & Custom QR Code
+                  <Upload className="w-5 h-5 text-[#2D5BFF]" /> Upload 3D Model (.GLB)
                 </CardTitle>
                 <CardDescription>
-                  Upload the final `.glb` file and an optional custom QR Code
-                  image. Uploading automatically marks order as Completed.
+                  Upload the `.glb` file for the AR viewer.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -257,47 +279,14 @@ export const AdminOrderDetailPage: React.FC = () => {
                     )}
                   </div>
 
-                  {/* File Upload for Custom QR Code */}
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-soft)]">
-                      Custom Product QR Code Image (.png, .jpg, .svg)
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) =>
-                        setQrCodeFile(e.target.files?.[0] || null)
-                      }
-                      className="w-full px-3 py-2 bg-[var(--surface-soft)] text-[var(--ink)] border border-[var(--contrast)] rounded-xl text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#2D5BFF] file:text-white hover:file:bg-blue-600"
-                    />
-                    {qrCodeFile && (
-                      <p className="text-xs text-emerald-500 font-medium">
-                        Selected file: {qrCodeFile.name}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Or URL Link */}
-                  {/* <div className="space-y-1.5 pt-2 border-t border-[var(--contrast)]">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-soft)]">
-                      Or 3D Model File URL / CDN Link
-                    </label>
-                    <input
-                      type="url"
-                      placeholder="https://assets.immversestudios.com/models/model.glb"
-                      value={modelFileUrl}
-                      onChange={e => setModelFileUrl(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-[var(--surface-soft)] text-[var(--ink)] border border-[var(--contrast)] rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#2D5BFF]"
-                    />
-                  </div> */}
-
                   <Button
                     type="submit"
                     variant="secondary"
                     isLoading={isUploadingModel}
                     leftIcon={<Upload className="w-4 h-4 text-[#2D5BFF]" />}
+                    disabled={!glbFile}
                   >
-                    Upload Assets & Mark Completed
+                    Upload GLB Asset
                   </Button>
                 </form>
 
@@ -342,6 +331,53 @@ export const AdminOrderDetailPage: React.FC = () => {
                     </div>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* QR Code Upload UI */}
+            <Card glass>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <QrCode className="w-5 h-5 text-[#2D5BFF]" /> QR Code Management
+                </CardTitle>
+                <CardDescription>
+                  Upload a custom QR Code image or auto-generate one.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleQRCodeSubmit} className="space-y-4">
+                  {/* File Upload for Custom QR Code */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-soft)]">
+                      Custom Product QR Code Image (.png, .jpg, .svg)
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        setQrCodeFile(e.target.files?.[0] || null)
+                      }
+                      className="w-full px-3 py-2 bg-[var(--surface-soft)] text-[var(--ink)] border border-[var(--contrast)] rounded-xl text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#2D5BFF] file:text-white hover:file:bg-blue-600"
+                    />
+                    {qrCodeFile && (
+                      <p className="text-xs text-emerald-500 font-medium">
+                        Selected file: {qrCodeFile.name}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex gap-4">
+                    <Button
+                      type="submit"
+                      variant="secondary"
+                      isLoading={isHandlingQRCode}
+                      leftIcon={<Upload className="w-4 h-4 text-[#2D5BFF]" />}
+                      disabled={!qrCodeFile && isHandlingQRCode}
+                    >
+                      {qrCodeFile ? "Upload Custom QR" : "Generate Auto QR Code"}
+                    </Button>
+                  </div>
+                </form>
               </CardContent>
             </Card>
 
@@ -411,7 +447,7 @@ export const AdminOrderDetailPage: React.FC = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {project.arViewerUrl ? (
+                {project.qrCodeUrl || project.arViewerUrl ? (
                   <div className="space-y-4">
                     <div className="inline-block p-4 rounded-2xl bg-white shadow-md border border-gray-200">
                       {project.qrCodeUrl ? (
@@ -420,53 +456,22 @@ export const AdminOrderDetailPage: React.FC = () => {
                           alt={`${project.productName} QR Code`}
                           className="w-[180px] h-[180px] object-contain"
                         />
-                      ) : (
+                      ) : project.arViewerUrl ? (
                         <QRCodeSVG
                           value={project.arViewerUrl}
                           size={180}
                           level="H"
                           includeMargin={true}
                         />
-                      )}
+                      ) : null}
                     </div>
 
-                    {/* <div className="text-left bg-[var(--surface-soft)] p-3 rounded-xl border border-[var(--contrast)]">
-                      <span className="text-[10px] uppercase font-mono text-[var(--ink-soft)] block">
-                        Web AR Viewer URL:
-                      </span>
-                      <a
-                        href={project.arViewerUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-mono text-[#2D5BFF] hover:underline flex items-center gap-1 mt-0.5 truncate"
-                      >
-                        {project.arViewerUrl}{" "}
-                        <ExternalLink className="w-3 h-3 shrink-0" />
-                      </a>
-                    </div> */}
-
-                    {/* <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={copyViewerLink}
-                      leftIcon={
-                        isCopied ? (
-                          <Check className="w-4 h-4 text-emerald-500" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )
-                      }
-                    >
-                      {isCopied ? "Link Copied!" : "Copy AR Viewer Link"}
-                    </Button> */}
                   </div>
                 ) : (
                   <div className="p-8 rounded-2xl bg-[var(--surface-soft)] border border-[var(--contrast)] text-xs text-[var(--ink-soft)] space-y-2">
                     <QrCode className="w-10 h-10 mx-auto text-[var(--ink-soft)] opacity-40" />
                     <p>
-                      QR Code pending model upload. Once status is marked
-                      Completed, link will render here.
+                      QR Code pending generation or upload.
                     </p>
                   </div>
                 )}

@@ -28,6 +28,30 @@ export const projectService = {
     return fetchClient<Project>(`/api/projects/${id}`);
   },
 
+  async getPublicProjectById(id: string): Promise<Partial<Project> | null> {
+    if (isMockMode()) {
+      await new Promise(res => setTimeout(res, 200));
+      const project = mockProjects.find(p => p.id === id);
+      if (!project) return null;
+      return {
+        id: project.id,
+        productName: project.productName,
+        arModelUrl: project.arModelUrl,
+        status: project.status
+      };
+    }
+    // Using fetch directly without auth interceptor for public route
+    try {
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${BASE_URL}/api/projects/public/${id}`);
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  },
+
   async createOrder(data: {
     clientEmail: string;
     clientName: string;
@@ -99,8 +123,7 @@ export const projectService = {
   async uploadARModel(
     id: string, 
     fileUrl?: string, 
-    modelFile?: File | null, 
-    qrCodeFile?: File | null
+    modelFile?: File | null
   ): Promise<Project> {
     if (isMockMode()) {
       await new Promise(res => setTimeout(res, 500));
@@ -110,9 +133,6 @@ export const projectService = {
       const updated: Project = {
         ...mockProjects[index],
         arModelUrl: fileUrl || (modelFile ? URL.createObjectURL(modelFile) : undefined),
-        qrCodeUrl: qrCodeFile ? URL.createObjectURL(qrCodeFile) : mockProjects[index].qrCodeUrl,
-        arViewerUrl: `https://ar.immversestudios.com/view/${id}`,
-        status: 'Completed',
         updatedAt: new Date().toISOString()
       };
 
@@ -123,9 +143,37 @@ export const projectService = {
     const formData = new FormData();
     if (fileUrl) formData.append('fileUrl', fileUrl);
     if (modelFile) formData.append('modelFile', modelFile);
-    if (qrCodeFile) formData.append('qrCodeFile', qrCodeFile);
 
     return fetchClient<Project>(`/api/projects/${id}/model`, {
+      method: 'POST',
+      body: formData
+    });
+  },
+
+  async handleQRCode(
+    id: string,
+    qrCodeFile?: File | null
+  ): Promise<Project> {
+    if (isMockMode()) {
+      await new Promise(res => setTimeout(res, 500));
+      const index = mockProjects.findIndex(p => p.id === id);
+      if (index === -1) throw new Error('Project not found');
+
+      const updated: Project = {
+        ...mockProjects[index],
+        qrCodeUrl: qrCodeFile ? URL.createObjectURL(qrCodeFile) : `mock-qr-${Date.now()}.png`,
+        arViewerUrl: `https://ar.immversestudios.com/view/${id}`,
+        updatedAt: new Date().toISOString()
+      };
+
+      mockProjects[index] = updated;
+      return updated;
+    }
+
+    const formData = new FormData();
+    if (qrCodeFile) formData.append('qrCodeFile', qrCodeFile);
+
+    return fetchClient<Project>(`/api/projects/${id}/qrcode`, {
       method: 'POST',
       body: formData
     });

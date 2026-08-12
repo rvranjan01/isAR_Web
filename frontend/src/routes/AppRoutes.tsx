@@ -11,6 +11,7 @@ import { AdminSubscriptionsPage } from '@/pages/AdminSubscriptionsPage';
 import { AdminClientsPage } from '@/pages/AdminClientsPage';
 import { AdminClientDetailPage } from '@/pages/AdminClientDetailPage';
 import { UnauthorizedPage } from '@/pages/UnauthorizedPage';
+import { ARViewerPage } from '@/pages/ARViewerPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { useAuth } from '@/context/AuthContext';
 
@@ -20,6 +21,7 @@ export const AppRoutes: React.FC = () => {
   return (
     <Routes>
       {/* Public Route */}
+      <Route path="/view/:id" element={<ARViewerPage />} />
       <Route
         path="/login"
         element={
