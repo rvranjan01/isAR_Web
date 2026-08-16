@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Input";
-import { ArrowLeft, UploadCloud, Sparkles, Check } from "lucide-react";
+import { ArrowLeft, UploadCloud, Sparkles, Check, UserCheck, Loader2 } from "lucide-react";
 import { PageTransition } from "@/components/layout/PageTransition";
 
 export const AdminNewOrderPage: React.FC = () => {
@@ -24,9 +24,17 @@ export const AdminNewOrderPage: React.FC = () => {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
 
+  // Client lookup state
+  const [isExistingClient, setIsExistingClient] = useState(false);
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [lookupDone, setLookupDone] = useState(false);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<NewOrderFormData>({
     resolver: zodResolver(newOrderSchema),
@@ -40,7 +48,75 @@ export const AdminNewOrderPage: React.FC = () => {
     },
   });
 
+  const clientEmail = watch("clientEmail");
+
+  // Debounced email lookup
+  const lookupClient = useCallback(
+    async (email: string) => {
+      // Basic email format check before making API call
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        setIsExistingClient(false);
+        setLookupDone(false);
+        return;
+      }
+
+      setIsLookingUp(true);
+      try {
+        const result = await projectService.lookupClientByEmail(email);
+        if (result.exists && result.clientName) {
+          setValue("clientName", result.clientName);
+          setIsExistingClient(true);
+        } else {
+          setValue("clientName", "");
+          setIsExistingClient(false);
+        }
+        setLookupDone(true);
+      } catch (err) {
+        console.error("Client lookup failed:", err);
+        setIsExistingClient(false);
+        setLookupDone(true);
+      } finally {
+        setIsLookingUp(false);
+      }
+    },
+    [setValue],
+  );
+
+  useEffect(() => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    if (!clientEmail || clientEmail.trim() === "") {
+      setIsExistingClient(false);
+      setLookupDone(false);
+      setIsLookingUp(false);
+      return;
+    }
+
+    debounceTimer.current = setTimeout(() => {
+      lookupClient(clientEmail);
+    }, 600);
+
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, [clientEmail, lookupClient]);
+
   const onSubmit = async (data: NewOrderFormData) => {
+    // For new clients, clientName is mandatory
+    if (!isExistingClient && (!data.clientName || data.clientName.trim() === "")) {
+      addToast({
+        type: "error",
+        title: "Client Name Required",
+        description: "Please enter the client/company name for new clients.",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const newProject = await projectService.createOrder({
@@ -128,19 +204,60 @@ export const AdminNewOrderPage: React.FC = () => {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <Input
-                  label="Client Email Address"
-                  placeholder="client@gmail.com"
-                  error={errors.clientEmail?.message}
-                  {...register("clientEmail")}
-                />
+                <div className="relative">
+                  <Input
+                    label="Client Email Address"
+                    placeholder="client@gmail.com"
+                    error={errors.clientEmail?.message}
+                    {...register("clientEmail")}
+                  />
+                  {/* Lookup status indicator */}
+                  {isLookingUp && (
+                    <div className="absolute right-3 top-[2.15rem] flex items-center">
+                      <Loader2 className="w-4 h-4 animate-spin text-[var(--ink-soft)]" />
+                    </div>
+                  )}
+                  {!isLookingUp && lookupDone && isExistingClient && (
+                    <div className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-500">
+                      <UserCheck className="w-3.5 h-3.5" />
+                      Existing Data found
+                    </div>
+                  )}
+                  {!isLookingUp && lookupDone && !isExistingClient && clientEmail && (
+                    <div className="mt-1.5 text-xs font-medium text-amber-500">
+                      New client — please enter <b>Client / Company Name</b>
+                    </div>
+                  )}
+                </div>
 
-                <Input
-                  label="Client / Company Name"
-                  placeholder="RvRanjan"
-                  error={errors.clientName?.message}
-                  {...register("clientName")}
-                />
+                <div>
+                  <Input
+                    label={
+                      isExistingClient
+                        ? "Client / Company Name (Auto-filled)"
+                        : "Client / Company Name *"
+                    }
+                    placeholder="RvRanjan"
+                    error={
+                      errors.clientName?.message ||
+                      (!isExistingClient && !isLookingUp && lookupDone
+                        ? undefined
+                        : undefined)
+                    }
+                    disabled={isExistingClient}
+                    {...register("clientName")}
+                    style={
+                      isExistingClient
+                        ? { opacity: 0.7, cursor: "not-allowed" }
+                        : undefined
+                    }
+                  />
+                  {isExistingClient && (
+                    <p className="mt-1 text-xs text-[var(--ink-soft)]">
+                      Name loaded from existing records
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

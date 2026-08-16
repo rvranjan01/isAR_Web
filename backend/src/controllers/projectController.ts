@@ -92,6 +92,32 @@ export const getPublicProjectById = async (
   }
 };
 
+// Lookup client name by email (for auto-fill in new order form)
+export const lookupClientByEmail = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { email } = req.query;
+    if (!email || typeof email !== "string") {
+      res.status(400).json({ message: "Email query parameter is required" });
+      return;
+    }
+
+    const project = await Project.findOne({
+      clientEmail: email.toLowerCase(),
+    }).sort({ createdAt: -1 });
+
+    if (project && project.clientName) {
+      res.json({ exists: true, clientName: project.clientName });
+    } else {
+      res.json({ exists: false, clientName: null });
+    }
+  } catch (error) {
+    console.error("Error looking up client:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 export const createProject = async (
   req: Request,
@@ -111,6 +137,17 @@ export const createProject = async (
     const randomOrderNum = Math.floor(1000 + Math.random() * 9000);
     const orderId = `ORD-${randomOrderNum}`;
 
+    // If clientName is not provided, look it up from existing orders
+    let resolvedClientName = clientName;
+    if (!resolvedClientName || resolvedClientName.trim() === "") {
+      const existingProject = await Project.findOne({
+        clientEmail: clientEmail.toLowerCase(),
+      }).sort({ createdAt: -1 });
+      if (existingProject && existingProject.clientName) {
+        resolvedClientName = existingProject.clientName;
+      }
+    }
+
     let scanFileUrl: string | undefined;
 
     if (req.file) {
@@ -125,7 +162,7 @@ export const createProject = async (
     const project = new Project({
       orderId,
       clientEmail: clientEmail.toLowerCase(),
-      clientName,
+      clientName: resolvedClientName,
       productName,
       productCategory,
       description,

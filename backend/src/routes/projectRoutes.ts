@@ -9,6 +9,7 @@ import {
   uploadARModel,
   handleQRCode,
   deleteProject,
+  lookupClientByEmail,
 } from "../controllers/projectController";
 
 import { upload } from "../middleware/upload";
@@ -22,6 +23,7 @@ router.get("/public/:id", getPublicProjectById);
 router.use(authenticate);
 
 router.get("/", getProjects);
+router.get("/client-lookup", lookupClientByEmail);
 router.get("/:id", getProjectById);
 
 // Admin only routes

@@ -57,9 +57,28 @@ export const projectService = {
     }
   },
 
+  async lookupClientByEmail(
+    email: string,
+  ): Promise<{ exists: boolean; clientName: string | null }> {
+    if (isMockMode()) {
+      await new Promise((res) => setTimeout(res, 200));
+      const normalized = email.toLowerCase();
+      const existing = mockProjects.find(
+        (p) => p.clientEmail.toLowerCase() === normalized,
+      );
+      if (existing && existing.clientName) {
+        return { exists: true, clientName: existing.clientName };
+      }
+      return { exists: false, clientName: null };
+    }
+    return fetchClient<{ exists: boolean; clientName: string | null }>(
+      `/api/projects/client-lookup?email=${encodeURIComponent(email)}`,
+    );
+  },
+
   async createOrder(data: {
     clientEmail: string;
-    clientName: string;
+    clientName?: string;
     productName: string;
     productCategory: "AuRa AR Menu" | "Teleport 3D Twin";
     description: string;
@@ -76,7 +95,8 @@ export const projectService = {
         id: newId,
         orderId,
         clientEmail: data.clientEmail,
-        clientName: data.clientName,
+        // clientName: data.clientName,
+        clientName: data.clientName ?? "Unknown Client",
         productName: data.productName,
         productCategory: data.productCategory,
         description: data.description,
