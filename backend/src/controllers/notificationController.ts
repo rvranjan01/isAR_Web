@@ -1,14 +1,31 @@
 import { Request, Response } from "express";
 import { Notification } from "../models/Notification";
+import { AuthRequest } from "../middleware/auth";
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@immversestudios.com";
 
 export const getNotifications = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
 ): Promise<void> => {
   try {
-    const email = (req.query.email as string)?.toLowerCase();
-    let query = {};
-    if (email) {
+    const requestedEmail = (req.query.email as string)?.toLowerCase();
+    const user = req.user;
+    const email = requestedEmail || user?.email?.toLowerCase();
+
+    let query: Record<string, any> = {};
+
+    if (user?.role === "admin" || (email && (email === ADMIN_EMAIL.toLowerCase() || email.includes("admin")))) {
+      query = {
+        recipientEmail: {
+          $in: [
+            ADMIN_EMAIL.toLowerCase(),
+            "admin",
+            ...(email ? [email] : []),
+          ],
+        },
+      };
+    } else if (email) {
       query = { recipientEmail: email };
     }
 
@@ -17,6 +34,36 @@ export const getNotifications = async (
     });
     res.json(notifications);
   } catch (error) {
+    console.error("Error fetching notifications:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const createNotification = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { recipientEmail, title, message, type, link } = req.body;
+
+    if (!recipientEmail || !title || !message) {
+      res.status(400).json({ message: "Missing required notification fields" });
+      return;
+    }
+
+    const notification = new Notification({
+      recipientEmail: recipientEmail.toLowerCase(),
+      title,
+      message,
+      type: type || "info",
+      link,
+      read: false,
+    });
+
+    await notification.save();
+    res.status(201).json(notification);
+  } catch (error) {
+    console.error("Error creating notification:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -41,22 +88,37 @@ export const markAsRead = async (
 };
 
 export const markAllAsRead = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
 ): Promise<void> => {
   try {
     const { email } = req.body;
-    if (!email) {
+    const targetEmail = (email || req.user?.email || "")?.toLowerCase();
+
+    if (!targetEmail) {
       res.status(400).json({ message: "Email required" });
       return;
     }
 
-    await Notification.updateMany(
-      { recipientEmail: email.toLowerCase() },
-      { read: true },
-    );
+    if (req.user?.role === "admin" || targetEmail === ADMIN_EMAIL.toLowerCase() || targetEmail.includes("admin")) {
+      await Notification.updateMany(
+        {
+          recipientEmail: {
+            $in: [ADMIN_EMAIL.toLowerCase(), "admin", targetEmail],
+          },
+        },
+        { read: true },
+      );
+    } else {
+      await Notification.updateMany(
+        { recipientEmail: targetEmail },
+        { read: true },
+      );
+    }
+
     res.json({ message: "All notifications marked as read" });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+

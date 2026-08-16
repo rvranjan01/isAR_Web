@@ -1,6 +1,7 @@
 import { Subscription } from "@/types";
 import { fetchClient, isMockMode } from "./api";
 import { INITIAL_SUBSCRIPTIONS } from "./mocks/data";
+import { notificationService } from "./notificationService";
 
 let mockSubscriptions: Subscription[] = [...INITIAL_SUBSCRIPTIONS];
 
@@ -72,6 +73,23 @@ export const subscriptionService = {
         renewalRequestedAt: new Date().toISOString(),
       };
       mockSubscriptions[index] = updated;
+
+      notificationService.addNotification({
+        recipientEmail: "admin@immversestudios.com",
+        title: "Subscription Renewal Requested",
+        message: `${current.clientName} (${current.clientEmail}) requested plan renewal.`,
+        type: "warning",
+        link: "/admin/subscriptions",
+      });
+
+      notificationService.addNotification({
+        recipientEmail: current.clientEmail,
+        title: "Renewal Request Submitted",
+        message: "Your subscription renewal request has been sent for admin approval.",
+        type: "info",
+        link: "/dashboard",
+      });
+
       return updated;
     }
     return fetchClient<Subscription>("/api/subscriptions/request-renewal", {
@@ -111,8 +129,18 @@ export const subscriptionService = {
         renewalRequestedAt: undefined,
       };
       mockSubscriptions[index] = updated;
+
+      notificationService.addNotification({
+        recipientEmail: current.clientEmail,
+        title: "Subscription Renewed",
+        message: `Your ${current.plan} subscription has been renewed until ${updated.renewalDate}.`,
+        type: "success",
+        link: "/dashboard",
+      });
+
       return updated;
     }
+
     return fetchClient<Subscription>(
       `/api/subscriptions/${id}/confirm-renewal`,
       {

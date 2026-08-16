@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../models/User";
 import { Project } from "../models/Project";
+import { Notification } from "../models/Notification";
 import { AuthRequest } from "../middleware/auth";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_development";
@@ -72,6 +73,20 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         if (user.loginAttempts >= MAX_LOGIN_ATTEMPTS) {
           user.isLocked = true;
           await user.save();
+
+          try {
+            await Notification.create({
+              recipientEmail: ADMIN_EMAIL.toLowerCase(),
+              title: "Client Account Locked",
+              message: `Account for ${normalizedEmail} locked after ${MAX_LOGIN_ATTEMPTS} failed login attempts.`,
+              type: "error",
+              link: `/admin/clients/${encodeURIComponent(normalizedEmail)}`,
+              read: false,
+            });
+          } catch (notifErr) {
+            console.error("Failed to generate lockout notification:", notifErr);
+          }
+
           res.status(403).json({
             locked: true,
             message:
@@ -82,6 +97,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         }
 
         await user.save();
+
         res.status(401).json({
           message: "Order ID not found for this email address.",
           attemptsLeft,

@@ -12,7 +12,7 @@ export const newOrderSchema = z.object({
     .string()
     .min(1, "Client email is required")
     .email("Invalid email address"),
-  clientName: z.string().min(1, "Client/Company name is required"),
+  clientName: z.string().optional(),
   productName: z.string().min(1, "Product name is required"),
   productCategory: z.enum(["AuRa AR Menu", "Teleport 3D Twin"], {
     errorMap: () => ({ message: "Please select a valid category" }),
@@ -20,6 +20,7 @@ export const newOrderSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   notes: z.string().optional(),
 });
+
 
 export type NewOrderFormData = z.infer<typeof newOrderSchema>;
 

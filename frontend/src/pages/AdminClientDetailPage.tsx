@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { Modal } from "@/components/ui/Modal";
 import { formatDate, calculateDaysRemaining } from "@/lib/utils";
 import { useNotifications } from "@/context/NotificationContext";
 import {
@@ -22,6 +23,7 @@ import {
   Lock,
   LockOpen,
   ShieldAlert,
+  Trash2,
 } from "lucide-react";
 import { PageTransition } from "@/components/layout/PageTransition";
 
@@ -36,6 +38,8 @@ export const AdminClientDetailPage: React.FC = () => {
   const [isLocked, setIsLocked] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [isUnlocking, setIsUnlocking] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<Project | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -80,6 +84,30 @@ export const AdminClientDetailPage: React.FC = () => {
       });
     } finally {
       setIsUnlocking(false);
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    setIsDeleting(true);
+    try {
+      await projectService.deleteProject(orderToDelete.id);
+      setProjects((prev) => prev.filter((p) => p.id !== orderToDelete.id));
+      addToast({
+        type: "success",
+        title: "Order Deleted",
+        description: `Order ${orderToDelete.orderId} (${orderToDelete.productName}) has been permanently deleted.`,
+      });
+      setOrderToDelete(null);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete order";
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        description: msg,
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -362,15 +390,26 @@ export const AdminClientDetailPage: React.FC = () => {
                             {formatDate(project.updatedAt)}
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <Link to={`/admin/orders/${project.id}`}>
+                            <div className="flex items-center justify-end gap-2">
+                              <Link to={`/admin/orders/${project.id}`}>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  rightIcon={<ExternalLink className="w-3 h-3" />}
+                                >
+                                  Manage
+                                </Button>
+                              </Link>
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
-                                rightIcon={<ExternalLink className="w-3 h-3" />}
+                                onClick={() => setOrderToDelete(project)}
+                                className="text-red-500 hover:text-red-600 hover:bg-red-500/10 cursor-pointer"
+                                title="Delete Order"
                               >
-                                Manage
+                                <Trash2 className="w-4 h-4" />
                               </Button>
-                            </Link>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -381,7 +420,49 @@ export const AdminClientDetailPage: React.FC = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          isOpen={!!orderToDelete}
+          onClose={() => setOrderToDelete(null)}
+          title="Delete Order"
+        >
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs">
+              <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-sm">
+                  Are you sure you want to delete this order?
+                </p>
+                <p className="mt-1 text-red-400">
+                  This action is permanent. Order{" "}
+                  <strong>{orderToDelete?.orderId}</strong> for{" "}
+                  <strong>{orderToDelete?.productName}</strong> will be removed along with any uploaded files.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button
+                variant="ghost"
+                onClick={() => setOrderToDelete(null)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleDeleteOrder}
+                isLoading={isDeleting}
+                leftIcon={<Trash2 className="w-4 h-4" />}
+              >
+                Delete Order
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </PageTransition>
   );
 };
+

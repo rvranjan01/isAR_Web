@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useRef,
 } from "react";
 import { Notification, ToastMessage } from "@/types";
 import { notificationService } from "@/services/notificationService";
@@ -30,23 +31,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-
-  const refreshNotifications = useCallback(async () => {
-    if (!user) {
-      setNotifications([]);
-      return;
-    }
-    try {
-      const data = await notificationService.getNotifications(user.email);
-      setNotifications(data);
-    } catch {
-      // Ignore background notification fetch errors
-    }
-  }, [user]);
-
-  useEffect(() => {
-    refreshNotifications();
-  }, [refreshNotifications]);
+  const knownNotificationIds = useRef<Set<string>>(new Set());
+  const isInitialLoad = useRef<boolean>(true);
 
   const addToast = useCallback((toast: Omit<ToastMessage, "id">) => {
     const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
@@ -61,6 +47,67 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
+
+  const refreshNotifications = useCallback(async () => {
+    if (!user) {
+      setNotifications([]);
+      knownNotificationIds.current.clear();
+      isInitialLoad.current = true;
+      return;
+    }
+    try {
+      const data = await notificationService.getNotifications(user.email);
+      setNotifications(data);
+
+      if (isInitialLoad.current) {
+        data.forEach((n) => knownNotificationIds.current.add(n.id));
+        isInitialLoad.current = false;
+      } else {
+        // Detect newly arrived unread notifications in real time
+        const newUnread = data.filter(
+          (n) => !n.read && !knownNotificationIds.current.has(n.id),
+        );
+
+        if (newUnread.length > 0) {
+          newUnread.forEach((n) => {
+            knownNotificationIds.current.add(n.id);
+            addToast({
+              type: n.type || "info",
+              title: n.title,
+              description: n.message,
+            });
+          });
+        }
+      }
+    } catch {
+      // Ignore background notification fetch errors
+    }
+  }, [user, addToast]);
+
+  // Real-time listener and periodic polling
+  useEffect(() => {
+    isInitialLoad.current = true;
+    knownNotificationIds.current.clear();
+    refreshNotifications();
+
+    if (!user) return;
+
+    // Real-time polling every 4 seconds
+    const interval = setInterval(() => {
+      refreshNotifications();
+    }, 4000);
+
+    // Event listener for in-app real-time triggers
+    const handleEvent = () => {
+      refreshNotifications();
+    };
+    window.addEventListener("immverse:notification_refresh", handleEvent);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("immverse:notification_refresh", handleEvent);
+    };
+  }, [user, refreshNotifications]);
 
   const markAsRead = async (id: string) => {
     await notificationService.markAsRead(id);
@@ -94,6 +141,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
     </NotificationContext.Provider>
   );
 };
+
 
 export const useNotifications = (): NotificationContextType => {
   const context = useContext(NotificationContext);

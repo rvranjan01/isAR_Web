@@ -9,12 +9,6 @@ import notificationRoutes from "./routes/notificationRoutes";
 import { User } from "./models/User";
 import { verifySMTP } from "./services/emailService";
 
-// Legacy local-storage imports — kept for reference only.
-// Local upload directories are no longer required in production
-// because files are uploaded to Cloudinary.
-// import path from "path";
-// import fs from "fs";
-
 dotenv.config();
 
 const app = express();

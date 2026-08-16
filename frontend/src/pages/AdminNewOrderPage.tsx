@@ -130,14 +130,14 @@ export const AdminNewOrderPage: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input
                   label="Client Email Address"
-                  placeholder="client@restaurant.com"
+                  placeholder="client@gmail.com"
                   error={errors.clientEmail?.message}
                   {...register("clientEmail")}
                 />
 
                 <Input
                   label="Client / Company Name"
-                  placeholder="Bistro Lumière"
+                  placeholder="RvRanjan"
                   error={errors.clientName?.message}
                   {...register("clientName")}
                 />
@@ -146,7 +146,7 @@ export const AdminNewOrderPage: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input
                   label="Product / Item Name"
-                  placeholder="Signature Wagyu Steak"
+                  placeholder="Pizza, Fries etc."
                   error={errors.productName?.message}
                   {...register("productName")}
                 />

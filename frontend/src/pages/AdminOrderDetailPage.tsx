@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { projectService } from "@/services/projectService";
 import { Project, ProjectStatus } from "@/types";
@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Input";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { Modal } from "@/components/ui/Modal";
 import { PIPELINE_STAGES } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import {
@@ -28,17 +29,22 @@ import {
   Check,
   Box,
   Download,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { PageTransition } from "@/components/layout/PageTransition";
 
 export const AdminOrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { addToast } = useNotifications();
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isUploadingModel, setIsUploadingModel] = useState(false);
   const [isHandlingQRCode, setIsHandlingQRCode] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [selectedStatus, setSelectedStatus] =
     useState<ProjectStatus>("Uploaded");
   const [modelFileUrl, setModelFileUrl] = useState("");
@@ -148,6 +154,28 @@ export const AdminOrderDetailPage: React.FC = () => {
     }
   };
 
+  const handleDeleteOrder = async () => {
+    if (!project) return;
+    setIsDeleting(true);
+    try {
+      await projectService.deleteProject(project.id);
+      addToast({
+        type: "success",
+        title: "Order Deleted",
+        description: `Order ${project.orderId} (${project.productName}) has been permanently deleted.`,
+      });
+      navigate("/admin/orders");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete order";
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        description: msg,
+      });
+      setIsDeleting(false);
+    }
+  };
+
   const copyViewerLink = () => {
     if (!project?.arViewerUrl) return;
     navigator.clipboard.writeText(project.arViewerUrl);
@@ -188,7 +216,7 @@ export const AdminOrderDetailPage: React.FC = () => {
   return (
     <PageTransition>
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <Link to="/admin/orders">
             <Button
               variant="ghost"
@@ -205,8 +233,17 @@ export const AdminOrderDetailPage: React.FC = () => {
               <strong className="text-[#2D5BFF]">{project.orderId}</strong>
             </span>
             <Badge status={project.status} />
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => setIsDeleteModalOpen(true)}
+              leftIcon={<Trash2 className="w-4 h-4" />}
+            >
+              Delete Order
+            </Button>
           </div>
         </div>
+
 
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -324,7 +361,11 @@ export const AdminOrderDetailPage: React.FC = () => {
 
                     <div className="relative w-full h-72 rounded-xl bg-black/5 dark:bg-black/40 overflow-hidden border border-[var(--contrast)] flex items-center justify-center">
                       <model-viewer
-                        src={project.arModelUrl}
+                        src={
+                          project.arModelUrl?.includes("assets.immversestudios.com")
+                            ? "https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+                            : project.arModelUrl
+                        }
                         alt={project.productName}
                         auto-rotate
                         camera-controls
@@ -332,6 +373,7 @@ export const AdminOrderDetailPage: React.FC = () => {
                         shadow-intensity="1"
                         style={{ width: "100%", height: "100%" }}
                       ></model-viewer>
+
                     </div>
                   </div>
                 )}
@@ -500,7 +542,49 @@ export const AdminOrderDetailPage: React.FC = () => {
             </Card>
           </div>
         </div>
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          title="Delete Order"
+        >
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs">
+              <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-sm">
+                  Are you sure you want to permanently delete this order?
+                </p>
+                <p className="mt-1 text-red-400">
+                  This will remove order <strong>{project.orderId}</strong> (
+                  {project.productName}) along with any 3D models, scans, and
+                  associated AR QR links. This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button
+                variant="ghost"
+                onClick={() => setIsDeleteModalOpen(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleDeleteOrder}
+                isLoading={isDeleting}
+                leftIcon={<Trash2 className="w-4 h-4" />}
+              >
+                Delete Order
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </PageTransition>
   );
 };
+

@@ -8,6 +8,7 @@ import {
   updateProjectStatus,
   uploadARModel,
   handleQRCode,
+  deleteProject,
 } from "../controllers/projectController";
 
 import { upload } from "../middleware/upload";
@@ -26,6 +27,7 @@ router.get("/:id", getProjectById);
 // Admin only routes
 router.post("/", requireAdmin, upload.single("scanFile"), createProject);
 router.patch("/:id/status", requireAdmin, updateProjectStatus);
+router.delete("/:id", requireAdmin, deleteProject);
 
 // Model upload
 router.post(

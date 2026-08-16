@@ -194,7 +194,11 @@ export const ProjectDetailPage: React.FC = () => {
                   {/* 3D Model */}
                   <div className="w-full h-[400px] bg-[var(--surface-soft)]">
                     <model-viewer
-                      src={project.arModelUrl}
+                      src={
+                        project.arModelUrl?.includes("assets.immversestudios.com")
+                          ? "https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+                          : project.arModelUrl
+                      }
                       alt={project.productName}
                       auto-rotate
                       camera-controls
@@ -206,6 +210,7 @@ export const ProjectDetailPage: React.FC = () => {
                       }}
                     />
                   </div>
+
 
                   {/* Viewer Instructions */}
                   <div className="px-4 py-3 border-t border-[var(--contrast)]">

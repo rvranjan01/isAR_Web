@@ -1,8 +1,13 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import { Project } from "../models/Project";
+import { Notification } from "../models/Notification";
 import QRCode from "qrcode";
 import { uploadFile } from "../services/cloudinaryService";
 import { sendEmail } from "../services/emailService";
+const loginUrl = `${process.env.FRONTEND_URL}/login`;
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@immversestudios.com";
 
 export const getProjects = async (
   req: Request,
@@ -29,13 +34,23 @@ export const getProjectById = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const project = await Project.findById(req.params.id);
+    const id = (req.params.id as string) || "";
+    let project = null;
+
+    if (mongoose.isValidObjectId(id)) {
+      project = await Project.findById(id);
+    }
+    if (!project && id) {
+      project = await Project.findOne({ orderId: id.toUpperCase() });
+    }
+
     if (!project) {
       res.status(404).json({ message: "Project not found" });
       return;
     }
     res.json(project);
   } catch (error) {
+    console.error("Error fetching project by id:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -45,22 +60,38 @@ export const getPublicProjectById = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const project = await Project.findById(req.params.id);
+    const id = (req.params.id as string) || "";
+    let project = null;
+
+    if (mongoose.isValidObjectId(id)) {
+      project = await Project.findById(id);
+    }
+    if (!project && id) {
+      project = await Project.findOne({ orderId: id.toUpperCase() });
+    }
+
     if (!project) {
       res.status(404).json({ message: "Project not found" });
       return;
     }
-    // Only return fields necessary for the public AR viewer
+
+
+    // Return fields necessary for public AR viewer
     res.json({
+      id: project._id?.toString(),
       _id: project._id,
+      orderId: project.orderId,
       productName: project.productName,
+      productCategory: project.productCategory,
       arModelUrl: project.arModelUrl,
-      status: project.status
+      status: project.status,
     });
   } catch (error) {
+    console.error("Error fetching public project:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 export const createProject = async (
   req: Request,
@@ -100,13 +131,40 @@ export const createProject = async (
       description,
       productImageUrl:
         productImageUrl ||
-        "https://assets.immversestudios.com/default-product-image.png",
+        "https://plus.unsplash.com/premium_photo-1726797661357-f7897f35f865?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       scanFileUrl,
       notes,
       status: "Uploaded",
     });
 
     await project.save();
+
+    // Create notifications for client and admin
+    try {
+      await Notification.create([
+        {
+          recipientEmail: project.clientEmail,
+          title: "Order Created",
+          message: `Your order ${project.orderId} for "${project.productName}" has been successfully created.`,
+          type: "success",
+          link: `/dashboard`,
+          read: false,
+        },
+        {
+          recipientEmail: ADMIN_EMAIL.toLowerCase(),
+          title: "New Client Order",
+          message: `Order ${project.orderId} created for ${project.clientName} (${project.clientEmail}).`,
+          type: "info",
+          link: `/admin/orders/${project._id}`,
+          read: false,
+        },
+      ]);
+    } catch (notifErr) {
+      console.error(
+        "Failed to generate order creation notification:",
+        notifErr,
+      );
+    }
 
     // Send email to client
     const emailSubject = `Order Created: ${project.orderId}`;
@@ -118,6 +176,29 @@ export const createProject = async (
         <li><strong>Email:</strong> ${project.clientEmail}</li>
         <li><strong>Order ID:</strong> ${project.orderId}</li>
       </ul>
+      <p>
+    <a 
+      href="${loginUrl}" 
+      style="
+        display: inline-block;
+        padding: 12px 20px;
+        background-color: #000000;
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+      "
+    >
+      Login to Your Portal
+    </a>
+  </p>
+
+  <p>
+    Or copy and open this link in your browser:<br>
+    <a href="${loginUrl}">
+      ${loginUrl}
+    </a>
+  </p>
       <p>Thank you for choosing Immverse AR!</p>
     `;
     await sendEmail(project.clientEmail, emailSubject, emailHtml);
@@ -128,7 +209,6 @@ export const createProject = async (
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 export const updateProjectStatus = async (
   req: Request,
@@ -148,13 +228,29 @@ export const updateProjectStatus = async (
 
     if (status === "Completed" && !project.arViewerUrl) {
       const viewerBaseUrl =
-        process.env.AR_VIEWER_BASE_URL || "https://is-ar-web.vercel.app";
+        process.env.AR_VIEWER_BASE_URL ||
+        process.env.FRONTEND_URL ||
+        "http://localhost:5173";
 
-      project.arViewerUrl =
-        `${viewerBaseUrl.replace(/\/$/, "")}/view/${project._id}`;
+      project.arViewerUrl = `${viewerBaseUrl.replace(/\/$/, "")}/view/${project._id}`;
     }
 
+
     await project.save();
+
+    // Create in-app notification for client
+    try {
+      await Notification.create({
+        recipientEmail: project.clientEmail,
+        title: `Order Status Updated: ${status}`,
+        message: `Your order ${project.orderId} (${project.productName}) has moved to stage: ${status}.`,
+        type: status === "Completed" ? "success" : "info",
+        link: `/orders/${project._id}`,
+        read: false,
+      });
+    } catch (notifErr) {
+      console.error("Failed to generate status notification:", notifErr);
+    }
 
     // Send email to client on status update
     const emailSubject = `Order Status Updated: ${project.orderId}`;
@@ -169,14 +265,33 @@ export const updateProjectStatus = async (
         <strong>New Status:</strong> ${project.status}
       </p>
       <p>Login to the portal to view the details.</p>
+      <p>
+    <a 
+      href="https://is-ar-web.vercel.app/login" 
+      style="
+        display: inline-block;
+        padding: 12px 20px;
+        background-color: #000000;
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+      "
+    >
+      Login to Your Portal
+    </a>
+  </p>
+
+  <p>
+    Or copy and open this link in your browser:<br>
+    <a href="https://is-ar-web.vercel.app/login">
+      https://is-ar-web.vercel.app/login
+    </a>
+  </p>
       <p>Thank you!</p>
     `;
 
-    await sendEmail(
-      project.clientEmail,
-      emailSubject,
-      emailHtml,
-    );
+    await sendEmail(project.clientEmail, emailSubject, emailHtml);
 
     res.json(project);
   } catch (error) {
@@ -216,15 +331,28 @@ export const uploadARModel = async (
       project.arModelUrl = fileUrl;
     }
 
-    // Notice we do NOT automatically set status to Completed or generate QR code here anymore.
     await project.save();
+
+    // Create in-app notification for client
+    try {
+      await Notification.create({
+        recipientEmail: project.clientEmail,
+        title: "3D AR Model Uploaded",
+        message: `A 3D model is now available for order ${project.orderId} (${project.productName}).`,
+        type: "info",
+        link: `/orders/${project._id}`,
+        read: false,
+      });
+    } catch (notifErr) {
+      console.error("Failed to generate model upload notification:", notifErr);
+    }
+
     res.json(project);
   } catch (error) {
     console.error("Upload AR Model Error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 export const handleQRCode = async (
   req: Request,
@@ -241,10 +369,12 @@ export const handleQRCode = async (
     }
 
     const viewerBaseUrl =
-      process.env.AR_VIEWER_BASE_URL || "https://is-ar-web.vercel.app";
+      process.env.AR_VIEWER_BASE_URL ||
+      process.env.FRONTEND_URL ||
+      "http://localhost:5173";
 
-    const viewerUrl =
-      `${viewerBaseUrl.replace(/\/$/, "")}/view/${project._id}`;
+    const viewerUrl = `${viewerBaseUrl.replace(/\/$/, "")}/view/${project._id}`;
+
 
     console.log("========================================");
     console.log("Generating QR Code");
@@ -266,12 +396,9 @@ export const handleQRCode = async (
       );
     } else {
       // Generate QR Code containing the AR Viewer URL
-      const qrBuffer = await QRCode.toBuffer(
-        viewerUrl,
-        {
-          type: "png",
-        },
-      );
+      const qrBuffer = await QRCode.toBuffer(viewerUrl, {
+        type: "png",
+      });
 
       project.qrCodeUrl = await uploadFile(
         qrBuffer,
@@ -283,10 +410,52 @@ export const handleQRCode = async (
 
     await project.save();
 
+    // Create in-app notification for client
+    try {
+      await Notification.create({
+        recipientEmail: project.clientEmail,
+        title: "AR QR Code Ready",
+        message: `Scannable Web AR experience is live for ${project.orderId} (${project.productName})!`,
+        type: "success",
+        link: `/orders/${project._id}`,
+        read: false,
+      });
+    } catch (notifErr) {
+      console.error("Failed to generate QR notification:", notifErr);
+    }
+
     res.json(project);
   } catch (error) {
     console.error("QR Code Error:", error);
 
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const deleteProject = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const project = await Project.findById(req.params.id);
+
+    if (!project) {
+      res.status(404).json({
+        message: "Project not found",
+      });
+      return;
+    }
+
+    await Project.findByIdAndDelete(req.params.id);
+
+    res.json({
+      message: "Project deleted successfully",
+      id: req.params.id,
+    });
+  } catch (error) {
+    console.error("Error deleting project:", error);
     res.status(500).json({
       message: "Internal server error",
     });

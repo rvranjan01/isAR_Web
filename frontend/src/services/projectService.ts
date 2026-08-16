@@ -1,6 +1,7 @@
 import { Project, ProjectStatus } from "@/types";
 import { fetchClient, isMockMode } from "./api";
 import { INITIAL_PROJECTS } from "./mocks/data";
+import { notificationService } from "./notificationService";
 
 // In-memory mock store
 let mockProjects: Project[] = [...INITIAL_PROJECTS];
@@ -89,6 +90,23 @@ export const projectService = {
       };
 
       mockProjects.unshift(newProject);
+
+      notificationService.addNotification({
+        recipientEmail: data.clientEmail,
+        title: "Order Created",
+        message: `Your order ${orderId} for "${data.productName}" has been successfully created.`,
+        type: "success",
+        link: "/dashboard",
+      });
+
+      notificationService.addNotification({
+        recipientEmail: "admin@immversestudios.com",
+        title: "New Client Order",
+        message: `Order ${orderId} created for ${data.clientName} (${data.clientEmail}).`,
+        type: "info",
+        link: `/admin/orders/${newId}`,
+      });
+
       return newProject;
     }
 
@@ -122,6 +140,15 @@ export const projectService = {
       }
 
       mockProjects[index] = updated;
+
+      notificationService.addNotification({
+        recipientEmail: updated.clientEmail,
+        title: `Order Status Updated: ${status}`,
+        message: `Your order ${updated.orderId} (${updated.productName}) has moved to stage: ${status}.`,
+        type: status === "Completed" ? "success" : "info",
+        link: `/orders/${id}`,
+      });
+
       return updated;
     }
 
@@ -130,6 +157,7 @@ export const projectService = {
       body: JSON.stringify({ status }),
     });
   },
+
 
   async uploadARModel(
     id: string,
@@ -189,4 +217,17 @@ export const projectService = {
       body: formData,
     });
   },
+
+  async deleteProject(id: string): Promise<void> {
+    if (isMockMode()) {
+      await new Promise((res) => setTimeout(res, 300));
+      mockProjects = mockProjects.filter((p) => p.id !== id);
+      return;
+    }
+
+    return fetchClient<void>(`/api/projects/${id}`, {
+      method: "DELETE",
+    });
+  },
 };
+

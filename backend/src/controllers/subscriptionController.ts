@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
 import { Subscription } from "../models/Subscription";
+import { Notification } from "../models/Notification";
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@immversestudios.com";
 
 export const getSubscriptions = async (
   req: Request,
@@ -63,17 +66,39 @@ export const requestRenewal = async (
     }
 
     if (subscription.status === "renewal_requested") {
-      res
-        .status(400)
-        .json({
-          message: "Renewal already requested. Awaiting admin confirmation.",
-        });
+      res.status(400).json({
+        message: "Renewal already requested. Awaiting admin confirmation.",
+      });
       return;
     }
 
     subscription.status = "renewal_requested";
     subscription.renewalRequestedAt = new Date();
     await subscription.save();
+
+    // Create notifications for admin and client
+    try {
+      await Notification.create([
+        {
+          recipientEmail: ADMIN_EMAIL.toLowerCase(),
+          title: "Subscription Renewal Requested",
+          message: `${subscription.clientName} (${subscription.clientEmail}) requested a subscription renewal for their ${subscription.plan} plan.`,
+          type: "warning",
+          link: "/admin/subscriptions",
+          read: false,
+        },
+        {
+          recipientEmail: subscription.clientEmail,
+          title: "Renewal Request Submitted",
+          message: `Your renewal request for the ${subscription.plan} plan has been received. Admin confirmation is pending.`,
+          type: "info",
+          link: "/dashboard",
+          read: false,
+        },
+      ]);
+    } catch (notifErr) {
+      console.error("Failed to generate renewal notification:", notifErr);
+    }
 
     res.json(subscription);
   } catch (error) {
@@ -107,6 +132,21 @@ export const confirmRenewal = async (
     subscription.renewalRequestedAt = undefined;
 
     await subscription.save();
+
+    // Create notification for client
+    try {
+      await Notification.create({
+        recipientEmail: subscription.clientEmail,
+        title: "Subscription Renewed",
+        message: `Your ${subscription.plan} subscription has been confirmed and extended to ${newRenewalDate.toISOString().split("T")[0]}.`,
+        type: "success",
+        link: "/dashboard",
+        read: false,
+      });
+    } catch (notifErr) {
+      console.error("Failed to generate confirmation notification:", notifErr);
+    }
+
     res.json(subscription);
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
@@ -131,6 +171,21 @@ export const updateSubscription = async (
     if (renewalDate) subscription.renewalDate = new Date(renewalDate);
 
     await subscription.save();
+
+    // Create notification for client
+    try {
+      await Notification.create({
+        recipientEmail: subscription.clientEmail,
+        title: "Subscription Plan Updated",
+        message: `Your subscription has been updated: ${subscription.plan} plan (${subscription.status}).`,
+        type: "info",
+        link: "/dashboard",
+        read: false,
+      });
+    } catch (notifErr) {
+      console.error("Failed to generate update notification:", notifErr);
+    }
+
     res.json(subscription);
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
