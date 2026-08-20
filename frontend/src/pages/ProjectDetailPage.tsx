@@ -171,10 +171,10 @@ export const ProjectDetailPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Interactive 3D Model Viewer */}
-              {project.arModelUrl && (
+              {/* Interactive 3D Model or Raw Asset Viewer */}
+              {project.arModelUrl ? (
                 <div className="mt-6 overflow-hidden rounded-2xl border border-[var(--contrast)] bg-[var(--surface-soft)]">
-                  {/* Viewer Header */}
+                  {/* Viewer Header for Final AR Model */}
                   <div className="px-4 py-3 border-b border-[var(--contrast)] flex items-center justify-between">
                     <div>
                       <h3 className="text-sm font-semibold text-[var(--ink)]">
@@ -186,19 +186,15 @@ export const ProjectDetailPage: React.FC = () => {
                       </p>
                     </div>
 
-                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#2D5BFF]/10 text-[#2D5BFF]">
-                      AR Ready
+                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500">
+                      Final Model
                     </span>
                   </div>
 
                   {/* 3D Model */}
                   <div className="w-full h-[400px] bg-[var(--surface-soft)]">
                     <model-viewer
-                      src={
-                        project.arModelUrl?.includes("assets.immversestudios.com")
-                          ? "https://modelviewer.dev/shared-assets/models/Astronaut.glb"
-                          : project.arModelUrl
-                      }
+                      src={project.arModelUrl}
                       alt={project.productName}
                       auto-rotate
                       camera-controls
@@ -211,15 +207,56 @@ export const ProjectDetailPage: React.FC = () => {
                     />
                   </div>
 
-
                   {/* Viewer Instructions */}
                   <div className="px-4 py-3 border-t border-[var(--contrast)]">
                     <p className="text-xs text-[var(--ink-soft)] text-center">
-                      Click and drag to rotate • Scroll to zoom
+                      Click and drag to rotate • Scroll to zoom • AR enabled
                     </p>
                   </div>
                 </div>
-              )}
+              ) : project.rawAssetUrl || project.scanFileUrl ? (
+                <div className="mt-6 overflow-hidden rounded-2xl border border-[var(--contrast)] bg-[var(--surface-soft)]">
+                  {/* Viewer Header for Raw Asset */}
+                  <div className="px-4 py-3 border-b border-[var(--contrast)] flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-semibold text-[var(--ink)]">
+                        Uploaded Raw 3D Asset Preview
+                      </h3>
+
+                      <p className="text-xs text-[var(--ink-soft)] mt-0.5">
+                        Raw model uploaded during order creation (.glb / .usdz)
+                      </p>
+                    </div>
+
+                    {/* <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#2D5BFF]/10 text-[#2D5BFF]">
+                      Raw Asset (.GLB/.USDZ)
+                    </span> */}
+                  </div>
+
+                  {/* 3D Model View of Raw Asset */}
+                  <div className="w-full h-[400px] bg-[var(--surface-soft)]">
+                    <model-viewer
+                      src={project.rawAssetUrl || project.scanFileUrl}
+                      alt={project.productName}
+                      auto-rotate
+                      camera-controls
+                      shadow-intensity="1"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                      }}
+                    />
+                  </div>
+
+                  {/* Viewer Instructions */}
+                  <div className="px-4 py-3 border-t border-[var(--contrast)] flex items-center justify-between text-xs text-[var(--ink-soft)]">
+                    <span>
+                      Raw 3D asset attached • Final optimized AR model is in progress
+                    </span>
+                  
+                  </div>
+                </div>
+              ) : null}
             </CardContent>
 
             {/* Pipeline Stage Stepper */}

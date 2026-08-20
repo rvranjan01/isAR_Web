@@ -26,9 +26,12 @@ export interface Project {
   productCategory: "AuRa AR Menu" | "Teleport 3D Twin";
   description: string;
   status: ProjectStatus;
-  productImageUrl: string;
+  productImageUrl?: string;
   scanFileUrl?: string;
+  rawAssetUrl?: string;
+  rawAssetPublicId?: string;
   arModelUrl?: string;
+  arModelPublicId?: string;
   arViewerUrl?: string;
   qrCodeUrl?: string;
   createdAt: string;

@@ -22,7 +22,8 @@ export const AdminNewOrderPage: React.FC = () => {
   const { addToast } = useNotifications();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [rawAssetFile, setRawAssetFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   // Client lookup state
   const [isExistingClient, setIsExistingClient] = useState(false);
@@ -106,6 +107,31 @@ export const AdminNewOrderPage: React.FC = () => {
     };
   }, [clientEmail, lookupClient]);
 
+  const validateAndSetFile = (file: File | undefined | null) => {
+    if (!file) {
+      setRawAssetFile(null);
+      return;
+    }
+
+    const extension = file.name
+      .substring(file.name.lastIndexOf("."))
+      .toLowerCase();
+
+    if (extension !== ".glb" && extension !== ".usdz") {
+      setFileError("Invalid format: Please upload a .glb or .usdz 3D file.");
+      setRawAssetFile(null);
+      addToast({
+        type: "error",
+        title: "Unsupported File Format",
+        description: "Only raw .glb and .usdz files are supported.",
+      });
+      return;
+    }
+
+    setFileError(null);
+    setRawAssetFile(file);
+  };
+
   const onSubmit = async (data: NewOrderFormData) => {
     // For new clients, clientName is mandatory
     if (!isExistingClient && (!data.clientName || data.clientName.trim() === "")) {
@@ -113,6 +139,18 @@ export const AdminNewOrderPage: React.FC = () => {
         type: "error",
         title: "Client Name Required",
         description: "Please enter the client/company name for new clients.",
+      });
+      return;
+    }
+
+    // Require raw .glb or .usdz 3D asset file
+    if (!rawAssetFile) {
+      setFileError("Raw .glb or .usdz 3D asset file is required.");
+      addToast({
+        type: "error",
+        title: "Raw 3D Asset Required",
+        description:
+          "Please upload a raw .glb or .usdz 3D model file to create this order.",
       });
       return;
     }
@@ -126,6 +164,7 @@ export const AdminNewOrderPage: React.FC = () => {
         productCategory: data.productCategory,
         description: data.description,
         notes: data.notes,
+        rawAssetFile: rawAssetFile,
       });
 
       addToast({
@@ -163,13 +202,13 @@ export const AdminNewOrderPage: React.FC = () => {
     e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setUploadedFileName(e.dataTransfer.files[0].name);
+      validateAndSetFile(e.dataTransfer.files[0]);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setUploadedFileName(e.target.files[0].name);
+      validateAndSetFile(e.target.files[0]);
     }
   };
 
@@ -292,10 +331,10 @@ export const AdminNewOrderPage: React.FC = () => {
                 {...register("description")}
               />
 
-              {/* File Upload Dropzone for Raw Scan Data */}
+              {/* File Upload Dropzone for Raw .glb/.usdz 3D Model Asset */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--ink-soft)]">
-                  Raw Scan Data & Asset Upload (OBJ / PLY / ZIP)
+                  Raw 3D Asset Upload (.GLB / .USDZ) *
                 </label>
 
                 <div
@@ -306,36 +345,47 @@ export const AdminNewOrderPage: React.FC = () => {
                   className={`relative flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed transition-all text-center ${
                     dragActive
                       ? "border-[#2D5BFF] bg-[#2D5BFF]/10"
-                      : uploadedFileName
+                      : rawAssetFile
                         ? "border-emerald-500/50 bg-emerald-500/5"
-                        : "border-[var(--contrast)] bg-[var(--surface-soft)] hover:border-[#2D5BFF]/50"
+                        : fileError
+                          ? "border-red-500/50 bg-red-500/5"
+                          : "border-[var(--contrast)] bg-[var(--surface-soft)] hover:border-[#2D5BFF]/50"
                   }`}
                 >
                   <input
                     type="file"
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     onChange={handleFileChange}
-                    accept=".zip,.obj,.ply,.png,.jpg,.jpeg,.glb"
+                    accept=".glb,.usdz"
                   />
 
-                  {uploadedFileName ? (
-                    <div className="flex items-center gap-2 text-emerald-500 font-semibold text-sm">
-                      <Check className="w-5 h-5" />
-                      <span>Uploaded: {uploadedFileName}</span>
+                  {rawAssetFile ? (
+                    <div className="flex flex-col items-center gap-1 text-emerald-500 font-semibold text-sm">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-5 h-5" />
+                        <span>Attached: {rawAssetFile.name}</span>
+                      </div>
+                      <span className="text-xs text-[var(--ink-soft)]">
+                        ({(rawAssetFile.size / (1024 * 1024)).toFixed(2)} MB) • Click or drag to replace
+                      </span>
                     </div>
                   ) : (
                     <>
                       <UploadCloud className="w-10 h-10 text-[#2D5BFF] mb-2" />
                       <p className="text-sm font-semibold text-[var(--ink)]">
-                        Drag and drop raw scan ZIP or click to browse
+                        Drag and drop raw 3D model (.glb / .usdz) or click to browse
                       </p>
                       <p className="text-xs text-[var(--ink-soft)] mt-1">
-                        Supports photogrammetry ZIPs, .OBJ, .PLY, or raw photo
-                        sets (max 500MB)
+                        Mandatory raw asset file required for AR pipeline generation
                       </p>
                     </>
                   )}
                 </div>
+                {fileError && (
+                  <p className="text-xs font-medium text-red-500 mt-1">
+                    {fileError}
+                  </p>
+                )}
               </div>
 
               <Textarea

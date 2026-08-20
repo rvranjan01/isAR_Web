@@ -14,9 +14,12 @@ export interface IProject extends Document {
     | "Quality Check"
     | "Completed"
     | "Delivered";
-  productImageUrl: string;
+  productImageUrl?: string;
   scanFileUrl?: string;
+  rawAssetUrl?: string;
+  rawAssetPublicId?: string;
   arModelUrl?: string;
+  arModelPublicId?: string;
   arViewerUrl?: string;
   qrCodeUrl?: string;
   createdAt: Date;
@@ -48,9 +51,12 @@ const ProjectSchema = new Schema<IProject>(
       ],
       default: "Uploaded",
     },
-    productImageUrl: { type: String, required: true },
+    productImageUrl: { type: String },
     scanFileUrl: { type: String },
+    rawAssetUrl: { type: String },
+    rawAssetPublicId: { type: String },
     arModelUrl: { type: String },
+    arModelPublicId: { type: String },
     arViewerUrl: { type: String },
     qrCodeUrl: { type: String },
     notes: { type: String },

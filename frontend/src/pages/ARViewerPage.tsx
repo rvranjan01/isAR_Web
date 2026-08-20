@@ -53,11 +53,10 @@ export const ARViewerPage: React.FC = () => {
     fetchProject();
   }, [id]);
 
-  const rawModelUrl = project?.arModelUrl;
-  const isMockDomain = rawModelUrl?.includes("assets.immversestudios.com");
-  const effectiveModelUrl = isUsingFallback || isMockDomain
+  const rawModelUrl = project?.arModelUrl || (project as any)?.rawAssetUrl;
+  const effectiveModelUrl = isUsingFallback
     ? FALLBACK_GLB_URL
-    : (rawModelUrl || FALLBACK_GLB_URL);
+    : (rawModelUrl || "");
 
   // Automatically trigger native AR experience on supported devices
   const triggerAutoAR = useCallback((modelUrl: string, productName?: string) => {
@@ -245,7 +244,7 @@ export const ARViewerPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 pointer-events-auto">
-            {(isUsingFallback || isMockDomain) && (
+            {isUsingFallback && (
               <span className="text-[10px] font-mono px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full">
                 Demo 3D Model
               </span>

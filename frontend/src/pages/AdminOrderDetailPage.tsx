@@ -361,11 +361,7 @@ export const AdminOrderDetailPage: React.FC = () => {
 
                     <div className="relative w-full h-72 rounded-xl bg-black/5 dark:bg-black/40 overflow-hidden border border-[var(--contrast)] flex items-center justify-center">
                       <model-viewer
-                        src={
-                          project.arModelUrl?.includes("assets.immversestudios.com")
-                            ? "https://modelviewer.dev/shared-assets/models/Astronaut.glb"
-                            : project.arModelUrl
-                        }
+                        src={project.arModelUrl}
                         alt={project.productName}
                         auto-rotate
                         camera-controls
@@ -373,8 +369,41 @@ export const AdminOrderDetailPage: React.FC = () => {
                         shadow-intensity="1"
                         style={{ width: "100%", height: "100%" }}
                       ></model-viewer>
-
                     </div>
+                  </div>
+                )}
+
+                {/* Uploaded Raw Asset Information */}
+                {(project?.rawAssetUrl || project?.scanFileUrl) && (
+                  <div className="mt-6 pt-6 border-t border-[var(--contrast)] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--ink-soft)] flex items-center gap-1.5">
+                        <Box className="w-4 h-4 text-purple-500" /> Order Raw 3D Asset (.GLB / .USDZ)
+                      </h4>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={project.rawAssetUrl || project.scanFileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-lg bg-[var(--surface-soft)] text-[var(--ink)] border border-[var(--contrast)] hover:border-[#2D5BFF]"
+                        >
+                          <ExternalLink className="w-3 h-3 text-purple-500" />{" "}
+                          Open Raw Asset
+                        </a>
+                        <a
+                          href={project.rawAssetUrl || project.scanFileUrl}
+                          download
+                          className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-lg bg-purple-600 text-white hover:bg-purple-700"
+                        >
+                          <Download className="w-3 h-3" /> Download Raw Asset
+                        </a>
+                      </div>
+                    </div>
+                    {project.rawAssetPublicId && (
+                      <p className="text-[11px] font-mono text-[var(--ink-soft)] truncate">
+                        Cloudinary Public ID: {project.rawAssetPublicId}
+                      </p>
+                    )}
                   </div>
                 )}
               </CardContent>

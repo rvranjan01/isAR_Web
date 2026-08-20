@@ -84,55 +84,23 @@ export const projectService = {
     description: string;
     notes?: string;
     productImageUrl?: string;
+    rawAssetFile: File;
   }): Promise<Project> {
-    if (isMockMode()) {
-      await new Promise((res) => setTimeout(res, 400));
-      const randomOrderNum = Math.floor(1000 + Math.random() * 9000);
-      const orderId = `ORD-${randomOrderNum}`;
-      const newId = `proj-${randomOrderNum}-${Date.now().toString().slice(-4)}`;
-
-      const newProject: Project = {
-        id: newId,
-        orderId,
-        clientEmail: data.clientEmail,
-        // clientName: data.clientName,
-        clientName: data.clientName ?? "Unknown Client",
-        productName: data.productName,
-        productCategory: data.productCategory,
-        description: data.description,
-        status: "Uploaded",
-        productImageUrl:
-          data.productImageUrl ||
-          "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        notes: data.notes,
-      };
-
-      mockProjects.unshift(newProject);
-
-      notificationService.addNotification({
-        recipientEmail: data.clientEmail,
-        title: "Order Created",
-        message: `Your order ${orderId} for "${data.productName}" has been successfully created.`,
-        type: "success",
-        link: "/dashboard",
-      });
-
-      notificationService.addNotification({
-        recipientEmail: "admin@immversestudios.com",
-        title: "New Client Order",
-        message: `Order ${orderId} created for ${data.clientName} (${data.clientEmail}).`,
-        type: "info",
-        link: `/admin/orders/${newId}`,
-      });
-
-      return newProject;
-    }
+    const formData = new FormData();
+    formData.append("clientEmail", data.clientEmail);
+    if (data.clientName) formData.append("clientName", data.clientName);
+    formData.append("productName", data.productName);
+    formData.append("productCategory", data.productCategory);
+    formData.append("description", data.description);
+    if (data.notes) formData.append("notes", data.notes);
+    if (data.productImageUrl)
+      formData.append("productImageUrl", data.productImageUrl);
+    formData.append("rawAsset", data.rawAssetFile);
+    formData.append("scanFile", data.rawAssetFile);
 
     return fetchClient<Project>("/api/projects", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: formData,
     });
   },
 

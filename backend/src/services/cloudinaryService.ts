@@ -54,12 +54,17 @@ cloudinary.api
  * AWS S3 / Azure Blob Storage.
  */
 
-export async function uploadFile(
+export interface CloudinaryUploadResult {
+  url: string;
+  publicId: string;
+}
+
+export async function uploadFileWithDetails(
   buffer: Buffer,
   filename: string,
   folder: string,
   resourceType: "image" | "video" | "raw" | "auto" = "auto",
-): Promise<string> {
+): Promise<CloudinaryUploadResult> {
   return new Promise((resolve, reject) => {
     const publicId =
       resourceType === "raw"
@@ -111,7 +116,10 @@ export async function uploadFile(
 
         console.log("Cloudinary upload COMPLETED:", result.secure_url);
 
-        resolve(result.secure_url);
+        resolve({
+          url: result.secure_url,
+          publicId: result.public_id,
+        });
       },
     );
 
@@ -127,6 +135,21 @@ export async function uploadFile(
 
     readable.pipe(uploadStream);
   });
+}
+
+export async function uploadFile(
+  buffer: Buffer,
+  filename: string,
+  folder: string,
+  resourceType: "image" | "video" | "raw" | "auto" = "auto",
+): Promise<string> {
+  const result = await uploadFileWithDetails(
+    buffer,
+    filename,
+    folder,
+    resourceType,
+  );
+  return result.url;
 }
 
 /**

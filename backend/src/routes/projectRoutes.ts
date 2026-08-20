@@ -27,7 +27,16 @@ router.get("/client-lookup", lookupClientByEmail);
 router.get("/:id", getProjectById);
 
 // Admin only routes
-router.post("/", requireAdmin, upload.single("scanFile"), createProject);
+router.post(
+  "/",
+  requireAdmin,
+  upload.fields([
+    { name: "rawAsset", maxCount: 1 },
+    { name: "scanFile", maxCount: 1 },
+    { name: "file", maxCount: 1 },
+  ]),
+  createProject,
+);
 router.patch("/:id/status", requireAdmin, updateProjectStatus);
 router.delete("/:id", requireAdmin, deleteProject);
 

@@ -441,15 +441,44 @@ export const ClientDashboardPage: React.FC = () => {
                             height: "100%",
                           }}
                         />
-                      ) : (
+                      ) : project.rawAssetUrl || project.scanFileUrl ? (
+                        <model-viewer
+                          src={project.rawAssetUrl || project.scanFileUrl}
+                          alt={project.productName}
+                          auto-rotate
+                          camera-controls
+                          ar
+                          shadow-intensity="1"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                          }}
+                        />
+                      ) : project.productImageUrl ? (
                         <img
                           src={project.productImageUrl}
                           alt={project.productName}
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-[var(--ink-soft)] bg-black/5 dark:bg-black/30">
+                          <Box className="w-8 h-8 opacity-40 mb-1" />
+                          <span className="text-xs">Raw Asset Attached</span>
+                        </div>
                       )}
                       <div className="absolute top-3 right-3">
                         <Badge status={project.status} />
+                      </div>
+                      <div className="absolute top-3 left-3">
+                        {project.arModelUrl ? (
+                          <span className="bg-emerald-500/90 backdrop-blur-md px-2 py-0.5 rounded-md text-[9px] font-semibold font-mono text-white">
+                            3D Model
+                          </span>
+                        ) : project.rawAssetUrl || project.scanFileUrl ? (
+                          <span className="bg-[#2D5BFF]/90 backdrop-blur-md px-2 py-0.5 rounded-md text-[9px] font-semibold font-mono text-white">
+                            Raw Asset (.GLB/.USDZ)
+                          </span>
+                        ) : null}
                       </div>
                       <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-mono text-white">
                         {project.productCategory}

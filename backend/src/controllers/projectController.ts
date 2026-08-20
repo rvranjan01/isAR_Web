@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { Project } from "../models/Project";
 import { Notification } from "../models/Notification";
 import QRCode from "qrcode";
-import { uploadFile } from "../services/cloudinaryService";
+import { uploadFile, uploadFileWithDetails } from "../services/cloudinaryService";
 import { sendEmail } from "../services/emailService";
 const loginUrl = `${process.env.FRONTEND_URL}/login`;
 
@@ -84,6 +84,7 @@ export const getPublicProjectById = async (
       productName: project.productName,
       productCategory: project.productCategory,
       arModelUrl: project.arModelUrl,
+      rawAssetUrl: project.rawAssetUrl,
       status: project.status,
     });
   } catch (error) {
@@ -134,6 +135,32 @@ export const createProject = async (
       productImageUrl,
     } = req.body;
 
+    const file =
+      req.file ||
+      (req.files as { [fieldname: string]: Express.Multer.File[] })?.rawAsset?.[0] ||
+      (req.files as { [fieldname: string]: Express.Multer.File[] })?.scanFile?.[0] ||
+      (Array.isArray(req.files) ? req.files[0] : undefined);
+
+    if (!file) {
+      res.status(400).json({
+        message:
+          "A raw .glb or .usdz 3D asset file is required to create an order.",
+      });
+      return;
+    }
+
+    const extension = file.originalname
+      .substring(file.originalname.lastIndexOf("."))
+      .toLowerCase();
+
+    if (extension !== ".glb" && extension !== ".usdz") {
+      res.status(400).json({
+        message:
+          "Invalid file format. Only raw .glb and .usdz 3D files are supported.",
+      });
+      return;
+    }
+
     const randomOrderNum = Math.floor(1000 + Math.random() * 9000);
     const orderId = `ORD-${randomOrderNum}`;
 
@@ -148,16 +175,12 @@ export const createProject = async (
       }
     }
 
-    let scanFileUrl: string | undefined;
-
-    if (req.file) {
-      scanFileUrl = await uploadFile(
-        req.file.buffer,
-        req.file.originalname,
-        "scans",
-        "auto",
-      );
-    }
+    const uploadResult = await uploadFileWithDetails(
+      file.buffer,
+      file.originalname,
+      "raw_assets",
+      "raw",
+    );
 
     const project = new Project({
       orderId,
@@ -166,10 +189,10 @@ export const createProject = async (
       productName,
       productCategory,
       description,
-      productImageUrl:
-        productImageUrl ||
-        "https://plus.unsplash.com/premium_photo-1726797661357-f7897f35f865?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      scanFileUrl,
+      productImageUrl: productImageUrl || "",
+      scanFileUrl: uploadResult.url,
+      rawAssetUrl: uploadResult.url,
+      rawAssetPublicId: uploadResult.publicId,
       notes,
       status: "Uploaded",
     });
@@ -358,12 +381,14 @@ export const uploadARModel = async (
 
     if (files?.modelFile && files.modelFile.length > 0) {
       const modelFile = files.modelFile[0];
-      project.arModelUrl = await uploadFile(
+      const uploadResult = await uploadFileWithDetails(
         modelFile.buffer,
         modelFile.originalname,
         "models",
         "raw",
       );
+      project.arModelUrl = uploadResult.url;
+      project.arModelPublicId = uploadResult.publicId;
     } else if (fileUrl) {
       project.arModelUrl = fileUrl;
     }
